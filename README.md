@@ -142,12 +142,31 @@ chat = AIChat(
 )
 ```
 
+## 📄 Web 界面
+
+项目提供了一个简洁美观的 Web 界面（`app.py`），可以直接在浏览器中体验各种模型的对话能力：
+
+```bash
+# 运行 Web 服务
+python app.py
+```
+
+启动后访问 `http://localhost:5000` 即可使用。主要功能：
+- 支持所有已配置模型的在线对话
+- 支持流式输出
+- 支持自定义系统提示词
+- 支持查看对话历史
+- 支持导出对话记录
+
+
+<img src="static/image/web_demo.png" width="600" alt="API Palette">
+
 ## 📄 许可证
 
 MIT 
 
 
-<img src="static/image/connect.jpg" width="600" alt="API Palette">
+<img src="static/image/connect.jpg" width="400" alt="API Palette">
 
 ---
 
@@ -294,6 +313,24 @@ chat = AIChat(
     timeout=60     # Request timeout 60 seconds
 )
 ```
+
+## 📄 Web Interface
+
+The project provides a clean and beautiful web interface (`app.py`) that allows you to experience various models' conversational capabilities directly in your browser:
+
+```bash
+# Run the web server
+python app.py
+```
+
+Visit `http://localhost:5000` after startup. Main features:
+- Support online conversation with all configured models
+- Support streaming output
+- Support custom system prompts
+- Support viewing conversation history
+- Support exporting conversation records
+
+<img src="static/image/web_demo.png" width="600" alt="API Palette">
 
 ## 📄 License
 
