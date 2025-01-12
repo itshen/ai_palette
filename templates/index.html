@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Palette Playground</title>
+    <title>AI Palette Playground</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -105,7 +105,7 @@
     <div class="max-w-4xl mx-auto">
         <div class="bg-gray-800/40 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
             <div class="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-6 border-b border-gray-700/50">
-                <h1 class="text-3xl font-bold text-white text-center">API Palette Playground 🎨</h1>
+                <h1 class="text-3xl font-bold text-white text-center">AI Palette Playground 🎨</h1>
                 <p class="text-gray-300 text-center mt-2">轻量优雅的统一 AI 接口，一个调用满足所有需求</p>
             </div>
             
@@ -208,8 +208,22 @@
         async function handleModelTypeChange() {
             const modelType = document.getElementById('modelType').value;
             const modelList = document.getElementById('modelList');
+            const modelInput = document.getElementById('model');
+            const apiKeyInput = document.getElementById('apiKey');
+            
+            // 清空模型列表
             modelList.innerHTML = '';
             
+            // 从本地存储获取该模型类型的上次配置
+            const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            
+            // 恢复上次使用的 API Key
+            apiKeyInput.value = savedConfig[`${modelType}_apiKey`] || '';
+            
+            // 恢复上次使用的模型
+            modelInput.value = savedConfig[`${modelType}_lastModel`] || '';
+            
+            // 更新模型列表
             if (modelType === 'ollama') {
                 try {
                     const response = await fetch('/api/models/ollama');
@@ -233,13 +247,19 @@
             }
         }
 
-        // 保存配置到本地存储
+        // 修改保存配置的函数，同时保存 API Key 和最后使用的模型
         function saveConfig() {
-            const config = {
-                modelType: document.getElementById('modelType').value,
-                apiKey: document.getElementById('apiKey').value,
-                model: document.getElementById('model').value
-            };
+            const modelType = document.getElementById('modelType').value;
+            const currentModel = document.getElementById('model').value;
+            const currentApiKey = document.getElementById('apiKey').value;
+            
+            const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            
+            // 更新当前配置
+            config.modelType = modelType;
+            config[`${modelType}_apiKey`] = currentApiKey;
+            config[`${modelType}_lastModel`] = currentModel;
+            
             localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
         }
 

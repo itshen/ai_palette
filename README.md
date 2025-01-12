@@ -1,8 +1,8 @@
-# API Palette 🎨
+# AI Palette 🎨
 
 轻量优雅的统一 AI 接口，一个调用满足所有需求。支持多种主流 AI 模型，如同调色板一样，随心所欲地切换不同的 AI 服务。
 
-## 🌟 为什么选择 API Palette?
+## 🌟 为什么选择 AI Palette?
 
 - 🔄 **统一接口**: 一套代码适配多个大模型，无需重复开发
 - 🛠 **降低成本**: 灵活切换不同模型，优化使用成本
@@ -23,10 +23,10 @@
 ## 🎯 支持的模型
 
 - OpenAI GPT
-- 百度文心一言
-- 阿里通义千问
+- 百度 文心一言
+- 阿里 通义千问
+- 智谱 ChatGLM
 - MiniMax
-- ChatGLM
 - Ollama
 
 ## 📦 安装
@@ -159,22 +159,22 @@ python app.py
 - 支持导出对话记录
 
 
-<img src="static/image/web_demo.png" width="600" alt="API Palette">
+<img src="static/image/web_demo.png" width="600" alt="AI Palette">
 
 ## 📄 许可证
 
 MIT 
 
 
-<img src="static/image/connect.jpg" width="400" alt="API Palette">
+<img src="static/image/connect.jpg" width="400" alt="PI Palette">
 
 ---
 
-# API Palette 🎨 [English]
+# AI Palette 🎨 [English]
 
 A lightweight and elegant unified AI interface that meets all needs with a single call. Supporting multiple mainstream AI models, switch between different AI services as freely as using a palette.
 
-## 🌟 Why Choose API Palette?
+## 🌟 Why Choose AI Palette?
 
 - 🔄 **Unified Interface**: One codebase fits multiple large models, no need to develop repeatedly
 - 🛠 **Reduce Costs**: Flexible switching between different models, optimizing usage costs
@@ -197,8 +197,8 @@ A lightweight and elegant unified AI interface that meets all needs with a singl
 - OpenAI GPT
 - Baidu ERNIE
 - Alibaba Qwen
+- Zhipu ChatGLM
 - MiniMax
-- ChatGLM
 - Ollama
 
 ## 📦 Installation
@@ -330,7 +330,7 @@ Visit `http://localhost:5000` after startup. Main features:
 - Support viewing conversation history
 - Support exporting conversation records
 
-<img src="static/image/web_demo.png" width="600" alt="API Palette">
+<img src="static/image/web_demo.png" width="600" alt="AI Palette">
 
 ## 📄 License
 
