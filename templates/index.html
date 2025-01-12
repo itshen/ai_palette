@@ -114,14 +114,19 @@
                     <div class="space-y-5">
                         <div>
                             <label class="label-text">模型类型</label>
-                            <select id="modelType" onchange="handleModelTypeChange()" class="input-base input-padding focus-ring">
-                                <option value="gpt">OpenAI GPT</option>
-                                <option value="ernie">百度文心一言</option>
-                                <option value="qwen">阿里通义千问</option>
-                                <option value="minimax">MiniMax</option>
-                                <option value="glm">ChatGLM</option>
-                                <option value="ollama">Ollama</option>
-                            </select>
+                            <div class="relative">
+                                <select id="modelType" onchange="handleModelTypeChange()" class="input-base input-padding focus-ring">
+                                    <option value="gpt">OpenAI GPT</option>
+                                    <option value="ernie">百度文心一言</option>
+                                    <option value="qwen">阿里通义千问</option>
+                                    <option value="minimax">MiniMax</option>
+                                    <option value="glm">ChatGLM</option>
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                                <a id="apiKeyHelp" href="#" target="_blank" class="absolute right-0 top-0 h-full px-3 flex items-center text-blue-400 hover:text-blue-300">
+                                    获取Key
+                                </a>
+                            </div>
                         </div>
 
                         <div>
@@ -210,6 +215,9 @@
             const modelList = document.getElementById('modelList');
             const modelInput = document.getElementById('model');
             const apiKeyInput = document.getElementById('apiKey');
+            
+            // 更新帮助链接
+            updateApiKeyHelpLink();
             
             // 清空模型列表
             modelList.innerHTML = '';
@@ -361,6 +369,24 @@
                 eyeIcon.classList.remove('hidden');
                 eyeSlashIcon.classList.add('hidden');
             }
+        }
+
+        // 添加获取 API Key 帮助链接更新函数
+        function updateApiKeyHelpLink() {
+            const modelType = document.getElementById('modelType').value;
+            const helpLink = document.getElementById('apiKeyHelp');
+            
+            const helpLinks = {
+                'gpt': 'https://platform.openai.com/api-keys',  // OpenAI 需要科学上网
+                'ernie': 'https://console.bce.baidu.com/qianfan/overview',
+                'qwen': 'https://bailian.console.aliyun.com/?apiKey=1',
+                'glm': 'https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys',
+                'minimax': 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
+                'ollama': '#'
+            };
+            
+            helpLink.href = helpLinks[modelType];
+            helpLink.style.display = (modelType === 'ollama') ? 'none' : 'flex';
         }
     </script>
 </body>
