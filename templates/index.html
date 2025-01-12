@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Palette Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .gradient-bg {
+                background: linear-gradient(120deg, #1a1f2c 0%, #1e2433 50%, #1a1f2c 100%);
+                background-size: 400% 400%;
+                animation: gradient 15s ease infinite;
+            }
+            @keyframes gradient {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+            .floating-image {
+                @apply fixed left-8 top-8 w-[320px] rounded-lg shadow-lg transition-transform duration-300
+                       hover:shadow-xl z-50;
+                filter: drop-shadow(0 4px 12px rgba(0, 120, 255, 0.2));
+            }
+            .floating-image:hover {
+                @apply -translate-y-1 rotate-1;
+                filter: drop-shadow(0 8px 16px rgba(0, 120, 255, 0.3));
+            }
+            .github-corner:hover .octo-arm {
+                animation: octocat-wave 560ms ease-in-out;
+            }
+            @keyframes octocat-wave {
+                0%, 100% { transform: rotate(0) }
+                20%, 60% { transform: rotate(-25deg) }
+                40%, 80% { transform: rotate(10deg) }
+            }
+            .input-base {
+                @apply w-full rounded-lg border border-gray-700/50 bg-gray-800/50 shadow-sm backdrop-blur-sm
+                       px-4 py-3 text-gray-100
+                       hover:border-blue-400/40 hover:bg-gray-800/70
+                       focus:border-blue-400 focus:bg-gray-800/90 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                       transition-all duration-200;
+            }
+            .btn-primary {
+                @apply w-full bg-gradient-to-r from-blue-500 to-blue-600
+                       text-white py-3 px-4 rounded-lg font-medium
+                       hover:opacity-90 active:opacity-80
+                       transform active:scale-[0.99]
+                       transition-all duration-200
+                       shadow-sm hover:shadow-blue-500/10 focus:shadow-md focus:outline-none;
+            }
+            .label-text {
+                @apply block text-sm font-medium text-gray-300 mb-1.5;
+            }
+            .response-box {
+                @apply w-full rounded-lg bg-gray-800/50 p-4 min-h-[100px] whitespace-pre-wrap 
+                       border border-gray-700/50 backdrop-blur-sm shadow-sm text-gray-100;
+            }
+            select {
+                @apply input-base appearance-none bg-no-repeat cursor-pointer pr-10 text-gray-100;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 0.75rem center;
+                background-size: 1.5em 1.5em;
+            }
+            input[type="checkbox"] {
+                @apply w-5 h-5 rounded-md text-blue-500 bg-gray-800 border-gray-700
+                       cursor-pointer transition-colors duration-200
+                       focus:ring-0 focus:ring-offset-0;
+            }
+            ::placeholder {
+                @apply text-gray-500;
+            }
+            option {
+                @apply bg-gray-800 text-gray-100;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg py-12 px-4 sm:px-6 lg:px-8">
+    <!-- 浮动图片 -->
+    <img src="/static/image/connect.jpg" alt="Connect" class="floating-image">
+    
+    <!-- GitHub Corner -->
+    <a href="https://github.com/itshen/ai_palette" class="github-corner" aria-label="View source on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-gray-800/40 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
+            <div class="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-6 border-b border-gray-700/50">
+                <h1 class="text-3xl font-bold text-white text-center">API Palette Playground 🎨</h1>
+                <p class="text-gray-300 text-center mt-2">轻量优雅的统一 AI 接口，一个调用满足所有需求</p>
+            </div>
+            
+            <div class="p-8">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="space-y-5">
+                        <div>
+                            <label class="label-text">模型类型</label>
+                            <select id="modelType" onchange="handleModelTypeChange()" class="input-base input-padding focus-ring">
+                                <option value="gpt">OpenAI GPT</option>
+                                <option value="ernie">百度文心一言</option>
+                                <option value="qwen">阿里通义千问</option>
+                                <option value="minimax">MiniMax</option>
+                                <option value="glm">ChatGLM</option>
+                                <option value="ollama">Ollama</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label-text">API Key</label>
+                            <div class="relative">
+                                <input type="password" id="apiKey" class="input-base input-padding focus-ring pr-10" placeholder="输入你的 API Key">
+                                <button onclick="toggleApiKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500 hover:text-gray-700">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500 hover:text-gray-700 hidden">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label-text">模型名称</label>
+                            <input type="text" id="model" list="modelList" class="input-base input-padding focus-ring" placeholder="选择或输入模型名称">
+                            <datalist id="modelList"></datalist>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="enableStreaming">
+                            <label class="label-text !mb-0">启用流式输出</label>
+                        </div>
+
+                        <div>
+                            <label class="label-text">提示词</label>
+                            <textarea id="prompt" rows="4" class="input-base input-padding focus-ring" placeholder="输入你想问的问题..."></textarea>
+                        </div>
+
+                        <button onclick="sendMessage()" class="btn-primary">
+                            发送
+                        </button>
+
+                        <div>
+                            <label class="label-text">回复</label>
+                            <div id="response" class="response-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center text-sm text-gray-400 space-x-4">
+            <a href="https://github.com/itshen/ai_palette" class="hover:text-blue-400 transition-colors" target="_blank">
+                GitHub 仓库
+            </a>
+            <span class="text-gray-600">|</span>
+            <span class="text-gray-400">© 2024 洛小山</span>
+        </div>
+    </div>
+
+    <script>
+        // 模型配置
+        const modelConfigs = {
+            'gpt': ['gpt-4o-mini','gpt-4o', 'gpt-3.5-turbo'],
+            'ernie': ['ernie-bot', 'ernie-bot-4'],
+            'qwen': ['qwen-turbo', 'qwen-plus', 'qwen-max'],
+            'glm': ['GLM-4-Plus', 'GLM-4-Flash'],
+            'minimax': ['abab6.5-chat', 'abab7-preview'],
+            'ollama': []
+        };
+
+        // 从本地存储加载配置
+        window.onload = function() {
+            const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            if (savedConfig.modelType) {
+                document.getElementById('modelType').value = savedConfig.modelType;
+                handleModelTypeChange();
+            }
+            if (savedConfig.apiKey) {
+                document.getElementById('apiKey').value = savedConfig.apiKey;
+            }
+            if (savedConfig.model) {
+                document.getElementById('model').value = savedConfig.model;
+            }
+        };
+
+        // 处理模型类型变化
+        async function handleModelTypeChange() {
+            const modelType = document.getElementById('modelType').value;
+            const modelList = document.getElementById('modelList');
+            modelList.innerHTML = '';
+            
+            if (modelType === 'ollama') {
+                try {
+                    const response = await fetch('/api/models/ollama');
+                    const data = await response.json();
+                    if (data.success) {
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model;
+                            modelList.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('获取Ollama模型列表失败:', error);
+                }
+            } else {
+                modelConfigs[modelType].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    modelList.appendChild(option);
+                });
+            }
+        }
+
+        // 保存配置到本地存储
+        function saveConfig() {
+            const config = {
+                modelType: document.getElementById('modelType').value,
+                apiKey: document.getElementById('apiKey').value,
+                model: document.getElementById('model').value
+            };
+            localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+        }
+
+        async function sendMessage() {
+            const response = document.getElementById('response');
+            response.textContent = '正在请求中...';
+            
+            const modelType = document.getElementById('modelType').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const prompt = document.getElementById('prompt').value;
+            const enableStreaming = document.getElementById('enableStreaming').checked;
+
+            // 保存配置
+            saveConfig();
+            
+            if (enableStreaming) {
+                response.textContent = '';
+                try {
+                    const res = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'text/event-stream',
+                        },
+                        body: JSON.stringify({
+                            model_type: modelType,
+                            api_key: apiKey,
+                            model: model,
+                            prompt: prompt,
+                            enable_streaming: true
+                        })
+                    });
+
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) break;
+                        
+                        const text = decoder.decode(value);
+                        const lines = text.split('\n');
+                        
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(6));
+                                    response.textContent += data.chunk;
+                                } catch (e) {
+                                    console.error('解析响应失败:', e);
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    response.textContent = '流式请求失败: ' + error.message;
+                }
+            } else {
+                try {
+                    const res = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model_type: modelType,
+                            api_key: apiKey,
+                            model: model,
+                            prompt: prompt,
+                            enable_streaming: false
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.success) {
+                        response.textContent = data.response;
+                    } else {
+                        response.textContent = '错误: ' + data.error;
+                    }
+                } catch (error) {
+                    response.textContent = '请求失败: ' + error.message;
+                }
+            }
+        }
+
+        // 切换 API Key 显示/隐藏
+        function toggleApiKeyVisibility() {
+            const apiKeyInput = document.getElementById('apiKey');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+            
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeSlashIcon.classList.remove('hidden');
+            } else {
+                apiKeyInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeSlashIcon.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html> 
