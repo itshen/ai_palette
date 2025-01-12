@@ -1,6 +1,8 @@
 # AI Palette 🎨
 
-轻量优雅的统一 AI 接口，一个调用满足所有需求。支持多种主流 AI 模型，如同调色板一样，随心所欲地切换不同的 AI 服务。
+轻量优雅的统一 AI 接口，一个调用满足所有需求。
+支持多种主流 AI 模型，如同调色板一样，随心所欲地切换不同的 AI 服务。
+非常适合在 Cursor 等 AI IDE 作为上下文使用。
 
 ## 🌟 为什么选择 AI Palette?
 
@@ -172,7 +174,9 @@ MIT
 
 # AI Palette 🎨 [English]
 
-A lightweight and elegant unified AI interface that meets all needs with a single call. Supporting multiple mainstream AI models, switch between different AI services as freely as using a palette.
+A lightweight and elegant unified AI interface that meets all needs with a single call.
+Supporting multiple mainstream AI models, switch between different AI services as freely as using a palette.
+It is great for AI IDEs such as Cursor to use as a context.
 
 ## 🌟 Why Choose AI Palette?
 
