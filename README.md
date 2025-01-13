@@ -74,6 +74,25 @@ messages.append(Message(role="assistant", content=response))
 
 messages.append(Message(role="user", content="你还记得我的名字吗？"))
 response = chat.ask("你还记得我的名字吗？", messages=messages)
+
+# 上下文管理
+chat = AIChat(model_type="gpt")
+
+# 添加系统提示词（只能添加一个）
+chat.add_context("你是一个专业的Python导师", role="system")
+
+# 添加对话历史
+chat.add_context("我想学习Python", role="user")
+chat.add_context("很好，Python是一个很好的选择。我们从基础开始吧。", role="assistant")
+
+# 发送新的问题
+response = chat.ask("我应该从哪里开始？")
+
+# 清除普通上下文，保留系统提示词
+chat.clear_context()
+
+# 清除所有上下文（包括系统提示词）
+chat.clear_context(include_system_prompt=True)
 ```
 
 ## ⚙️ 环境变量配置
@@ -142,6 +161,27 @@ chat = AIChat(
     retry_count=5,  # 最大重试5次
     timeout=60     # 请求超时时间60秒
 )
+```
+
+### 上下文管理
+
+AI Palette 提供了灵活的上下文管理功能：
+
+- **系统提示词**: 只能设置一个，始终位于对话最前面
+- **对话历史**: 可以添加多条用户和助手的对话记录
+- **上下文清理**: 支持选择性清除普通对话或包含系统提示词
+
+```python
+# 添加系统提示词
+chat.add_context("你是一个专业的Python导师", role="system")
+
+# 添加对话历史
+chat.add_context("我想学习Python", role="user")
+chat.add_context("很好，我们开始吧", role="assistant")
+
+# 清除上下文
+chat.clear_context()  # 只清除普通对话
+chat.clear_context(include_system_prompt=True)  # 清除所有上下文
 ```
 
 ## 📄 Web 界面
@@ -248,6 +288,25 @@ messages.append(Message(role="assistant", content=response))
 
 messages.append(Message(role="user", content="Do you remember my name?"))
 response = chat.ask("Do you remember my name?", messages=messages)
+
+# 上下文管理
+chat = AIChat(model_type="gpt")
+
+# 添加系统提示词（只能添加一个）
+chat.add_context("你是一个专业的Python导师", role="system")
+
+# 添加对话历史
+chat.add_context("我想学习Python", role="user")
+chat.add_context("很好，Python是一个很好的选择。我们从基础开始吧。", role="assistant")
+
+# 发送新的问题
+response = chat.ask("我应该从哪里开始？")
+
+# 清除普通上下文，保留系统提示词
+chat.clear_context()
+
+# 清除所有上下文（包括系统提示词）
+chat.clear_context(include_system_prompt=True)
 ```
 
 ## ⚙️ Environment Variables
@@ -316,6 +375,27 @@ chat = AIChat(
     retry_count=5,  # Maximum 5 retries
     timeout=60     # Request timeout 60 seconds
 )
+```
+
+### Context Management [English]
+
+AI Palette provides flexible context management features:
+
+- **System Prompt**: Only one can be set, always at the beginning of the conversation
+- **Dialogue History**: Multiple user and assistant messages can be added
+- **Context Cleanup**: Supports selective clearing of regular dialogue or including system prompt
+
+```python
+# Add system prompt
+chat.add_context("You are a Python tutor", role="system")
+
+# Add dialogue history
+chat.add_context("I want to learn Python", role="user")
+chat.add_context("Great, let's start with the basics", role="assistant")
+
+# Clear context
+chat.clear_context()  # Only clear regular dialogue
+chat.clear_context(include_system_prompt=True)  # Clear all context
 ```
 
 ## 📄 Web Interface

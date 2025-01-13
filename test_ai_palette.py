@@ -113,6 +113,45 @@ def test_context_chat(model_type: str):
     
     time.sleep(1)  # 避免请求过快
 
+def test_context_management(model_type: str):
+    """测试上下文管理功能"""
+    print(f"\n=== 测试 {model_type.upper()} 上下文管理 ===")
+    config = get_model_config(model_type)
+    chat = AIChat(
+        model_type=model_type,
+        api_key=get_api_key(model_type),
+        **config
+    )
+    
+    # 测试添加系统提示词
+    print("1. 测试系统提示词:")
+    chat.add_context("你是一个专业的Python导师", role="system")
+    response = chat.ask("Python适合初学者吗？")
+    print(f"回复: {response}")
+    
+    # 测试添加用户消息
+    print("\n2. 测试添加用户消息:")
+    chat.add_context("我想学习Python", role="user")
+    chat.add_context("很好，Python是一个很好的选择。我们从基础开始吧。", role="assistant")
+    response = chat.ask("我应该从哪里开始？")
+    print(f"回复: {response}")
+    
+    # 测试清除上下文
+    print("\n3. 测试清除上下文:")
+    chat.clear_context()
+    response = chat.ask("还记得我们刚才在聊什么吗？")
+    print(f"回复: {response}")
+    
+    # 测试重复添加系统提示词（应该抛出异常）
+    print("\n4. 测试重复添加系统提示词:")
+    try:
+        chat.add_context("你是一个数学老师", role="system")
+        chat.add_context("你是一个英语老师", role="system")
+    except ValueError as e:
+        print(f"预期的错误: {str(e)}")
+    
+    time.sleep(1)  # 避免请求过快
+
 def main():
     # 要测试的模型列表
     models = ['glm', 'qwen', 'minimax', 'gpt', 'ollama']  # 测试所有支持的模型
@@ -131,6 +170,10 @@ def main():
             
             # 测试上下文对话
             test_context_chat(model)
+            time.sleep(1)
+            
+            # 添加新的上下文管理测试
+            test_context_management(model)
             time.sleep(1)
             
         except Exception as e:

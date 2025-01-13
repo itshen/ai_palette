@@ -203,7 +203,8 @@ class AIChat:
         self.max_tokens = max_tokens
         self.timeout = timeout
         self.retry_count = retry_count
-        self._context = []
+        self._system_prompt = None  # 存储系统提示词
+        self._context = []  # 存储其他上下文消息
         
         # 验证配置
         self._validate_config()
@@ -256,15 +257,54 @@ class AIChat:
         response = requests.post(url)
         return response.json().get('access_token', '')
 
+    def add_context(self, content: str, role: str = "system") -> None:
+        """添加上下文消息
+        
+        Args:
+            content: 消息内容
+            role: 消息角色，可以是 "system"、"user" 或 "assistant"
+        
+        Raises:
+            ValueError: 当尝试添加多个系统提示词时抛出
+        """
+        if role == "system":
+            if self._system_prompt is not None:
+                raise ValueError("只能设置一个系统提示词（system prompt）")
+            self._system_prompt = Message(role="system", content=content)
+        else:
+            if role not in ["user", "assistant"]:
+                raise ValueError("角色必须是 'system'、'user' 或 'assistant'")
+            self._context.append(Message(role=role, content=content))
+
+    def clear_context(self, include_system_prompt: bool = False) -> None:
+        """清除上下文
+        
+        Args:
+            include_system_prompt: 是否同时清除系统提示词
+        """
+        self._context.clear()
+        if include_system_prompt:
+            self._system_prompt = None
+
     def _prepare_messages(self, prompt: str, messages: Optional[List[Message]] = None) -> List[Dict[str, str]]:
         """准备发送给AI的消息列表"""
-        if messages is None:
-            messages = []
-        # 添加系统提示词
-        if self._context:
-            messages = self._context + messages
-        messages.append(Message(role="user", content=prompt))
-        return [msg.to_dict() for msg in messages]
+        final_messages = []
+        
+        # 添加系统提示词（如果存在）
+        if self._system_prompt:
+            final_messages.append(self._system_prompt.to_dict())
+        
+        # 添加上下文消息
+        final_messages.extend([msg.to_dict() for msg in self._context])
+        
+        # 添加额外的消息历史（如果提供）
+        if messages:
+            final_messages.extend([msg.to_dict() for msg in messages])
+        
+        # 添加当前提示词
+        final_messages.append(Message(role="user", content=prompt).to_dict())
+        
+        return final_messages
 
     def _prepare_request_data(self, messages: List[Dict[str, str]], stream: bool = False) -> Dict:
         """准备请求数据"""
@@ -397,10 +437,6 @@ class AIChat:
         if use_stream:
             return self._stream_request(data)
         return self._normal_request(data)
-
-    def add_context(self, system_prompt: str) -> None:
-        """添加系统提示词到上下文"""
-        self._context.append(Message(role="system", content=system_prompt))
 
 # 使用示例
 if __name__ == "__main__":
