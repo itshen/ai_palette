@@ -98,6 +98,7 @@ class AIModelType(Enum):
     OLLAMA = "ollama"
     GLM = "glm"
     MINIMAX = "minimax"
+    DEEPSEEK = "deepseek"
 
     def _get_api_url(self) -> str:
         """获取API地址"""
@@ -110,7 +111,8 @@ class AIModelType(Enum):
             AIModelType.QWEN: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
             AIModelType.OLLAMA: "http://localhost:11434/api/chat",
             AIModelType.GLM: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-            AIModelType.MINIMAX: "https://api.minimax.chat/v1/chat/completions"
+            AIModelType.MINIMAX: "https://api.minimax.chat/v1/chat/completions",
+            AIModelType.DEEPSEEK: "https://api.deepseek.com/v1/chat/completions"
         }
         return urls[self.model_type]
 
@@ -153,6 +155,7 @@ class AIModelType(Enum):
                 } if self.temperature != 1.0 else {}
             }
         else:
+            # GPT, GLM, DEEPSEEK 等使用标准的 OpenAI 格式
             data = {
                 "model": self.model,
                 "messages": messages,
@@ -233,7 +236,8 @@ class AIChat:
             AIModelType.QWEN: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
             AIModelType.OLLAMA: "http://localhost:11434/api/chat",
             AIModelType.GLM: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-            AIModelType.MINIMAX: "https://api.minimax.chat/v1/chat/completions"
+            AIModelType.MINIMAX: "https://api.minimax.chat/v1/chat/completions",
+            AIModelType.DEEPSEEK: "https://api.deepseek.com/v1/chat/completions" 
         }
         return urls[self.model_type]
 
@@ -345,6 +349,7 @@ class AIChat:
                 } if self.temperature != 1.0 else {}
             }
         else:
+            # GPT, GLM, DEEPSEEK 等使用标准的 OpenAI 格式
             data = {
                 "model": self.model,
                 "messages": messages,
@@ -502,4 +507,4 @@ if __name__ == "__main__":
     stream_chat_example()
     
     print("\n=== MiniMax示例 ===")
-    minimax_chat_example() 
+    minimax_chat_example()
