@@ -24,12 +24,13 @@
 
 ## 🎯 支持的模型
 
-- OpenAI GPT
-- 百度 文心一言
-- 阿里 通义千问
-- 智谱 ChatGLM
-- MiniMax
-- Ollama
+- OpenAI GPT-4 Turbo
+- 百度 文心一言 4.0
+- 阿里 通义千问 Turbo
+- 智谱 GLM-4
+- MiniMax ABAB-6
+- DeepSeek Chat V3
+- Ollama (本地部署)
 
 ## 📦 安装
 
@@ -134,6 +135,19 @@ OLLAMA_MODEL=llama2
 ```
 
 ## 🎯 高级用法
+
+### 选择性测试
+
+可以通过环境变量选择要测试的模型：
+
+```bash
+# 只测试指定的模型
+export TEST_MODELS=gpt,deepseek,ollama
+python test_ai_palette.py
+
+# 测试所有模型
+python test_ai_palette.py
+```
 
 ### 消息历史
 
