@@ -1,9 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh" class="dark">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Palette</title>
+    <script>
+        // 在页面加载前初始化主题
+        (function() {
+            const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            if (savedConfig.theme) {
+                document.documentElement.classList.toggle('dark', savedConfig.theme === 'dark');
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -410,19 +421,37 @@
             const modelType = document.getElementById('modelType').value;
             const apiKey = document.getElementById('apiKey').value;
             const modelList = document.getElementById('modelList');
+            const modelInput = document.getElementById('model');
             
             try {
+                // 显示加载状态
+                modelInput.placeholder = '加载中...';
+                modelInput.disabled = true;
+                
                 const response = await fetch(`/api/models?type=${modelType}&api_key=${apiKey}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    allModels = data.models;
+                    allModels = data.models || [];
                     updateModelList(allModels);
+                    // 如果有模型，显示下拉框
+                    if (allModels.length > 0) {
+                        document.getElementById('modelDropdown').classList.remove('hidden');
+                        modelInput.placeholder = '选择或输入模型名称';
+                    } else {
+                        modelInput.placeholder = '未找到可用模型';
+                    }
                 } else {
                     showError(data.error || '获取模型列表失败');
+                    modelInput.placeholder = '获取模型失败';
+                    allModels = [];
                 }
             } catch (error) {
                 showError('获取模型列表失败: ' + error.message);
+                modelInput.placeholder = '获取模型失败';
+                allModels = [];
+            } finally {
+                modelInput.disabled = false;
             }
         }
         
@@ -457,6 +486,14 @@
             const modelList = document.getElementById('modelList');
             modelList.innerHTML = '';
             
+            if (models.length === 0) {
+                const noModels = document.createElement('div');
+                noModels.className = 'px-4 py-2 dark:text-slate-400 text-slate-500 text-center';
+                noModels.textContent = '没有可用的模型';
+                modelList.appendChild(noModels);
+                return;
+            }
+            
             models.forEach(model => {
                 const option = document.createElement('div');
                 option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
@@ -464,6 +501,12 @@
                 option.onclick = () => {
                     document.getElementById('model').value = model;
                     document.getElementById('modelDropdown').classList.add('hidden');
+                    
+                    // 保存选择
+                    const modelType = document.getElementById('modelType').value;
+                    const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                    config[`${modelType}_lastModel`] = model;
+                    localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
                 };
                 modelList.appendChild(option);
             });
@@ -521,6 +564,7 @@
         async function handleModelTypeChange() {
             const modelType = document.getElementById('modelType').value;
             const apiKeyInput = document.getElementById('apiKey');
+            const modelInput = document.getElementById('model');
             
             // 更新帮助链接
             updateApiKeyHelpLink();
@@ -532,12 +576,14 @@
             apiKeyInput.value = savedConfig[`${modelType}_apiKey`] || '';
             
             // 恢复上次使用的模型
-            document.getElementById('model').value = savedConfig[`${modelType}_lastModel`] || '';
+            modelInput.value = savedConfig[`${modelType}_lastModel`] || '';
+            
+            // 清空当前模型列表
+            allModels = [];
+            document.getElementById('modelDropdown').classList.add('hidden');
             
             // 自动刷新模型列表
-            if (modelType === 'ollama' || ['openai', 'dashscope', 'deepseek', 'siliconflow'].includes(modelType)) {
-                refreshModels();
-            }
+            refreshModels();
         }
 
         // 点击页面其他地方时隐藏下拉框
