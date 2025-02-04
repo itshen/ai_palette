@@ -16,17 +16,31 @@ def serve_static(filename):
 
 @app.route('/api/models', methods=['GET'])
 def get_models():
-    model_type = request.args.get('type')
+    model_provider = request.args.get('type')
     api_key = request.args.get('api_key')
     
     try:
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         
-        if model_type == 'ollama':
+        # 固定模型列表的提供商
+        fixed_models = {
+            'ernie': ['ernie-bot', 'ernie-bot-4'],
+            'zhipu': ['GLM-4-Plus', 'GLM-4-Flash'],
+            'minimax': ['abab6.5-chat', 'abab7-preview']
+        }
+        
+        # 如果是固定模型列表的提供商
+        if model_provider in fixed_models:
+            return jsonify({'success': True, 'models': fixed_models[model_provider]})
+        
+        # Ollama 本地模型
+        if model_provider == 'ollama':
             response = requests.get('http://localhost:11434/api/tags')
             models = response.json()
             return jsonify({'success': True, 'models': [model['name'] for model in models['models']]})
-        elif model_type in ['openai', 'dashscope', 'deepseek', 'siliconflow']:
+        
+        # 需要 API 调用的提供商
+        if model_provider in ['openai', 'dashscope', 'deepseek', 'siliconflow']:
             base_urls = {
                 'openai': 'https://api.openai.com/v1/models',
                 'dashscope': 'https://dashscope.aliyuncs.com/api/v1/models',
@@ -34,18 +48,18 @@ def get_models():
                 'siliconflow': 'https://api.siliconflow.cn/v1/models'
             }
             
-            if not api_key and model_type != 'ollama':
+            if not api_key:
                 return jsonify({'success': False, 'error': '需要 API Key'}), 401
                 
-            response = requests.get(base_urls[model_type], headers=headers)
+            response = requests.get(base_urls[model_provider], headers=headers)
             if response.status_code == 200:
                 data = response.json()
                 models = [model['id'] for model in data.get('data', [])]
                 return jsonify({'success': True, 'models': models})
             else:
                 return jsonify({'success': False, 'error': f'获取模型列表失败: {response.text}'}), response.status_code
-        else:
-            return jsonify({'success': False, 'error': '不支持的模型类型'}), 400
+        
+        return jsonify({'success': False, 'error': '不支持的模型类型'}), 400
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

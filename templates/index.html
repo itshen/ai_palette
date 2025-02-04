@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Palette Playground</title>
+    <title>AI Palette</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -84,6 +84,51 @@
     </style>
 </head>
 <body class="dark:bg-slate-900 dark:text-slate-200 bg-slate-50 text-slate-900">
+    <!-- 欢迎模态框 -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative bg-white dark:bg-slate-800 rounded-xl max-w-lg w-full mx-4 p-6 shadow-xl transform transition-transform duration-300 scale-95">
+            <div class="absolute top-4 right-4">
+                <button onclick="closeWelcomeModal()" class="dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path d="M18 6l-12 12"></path>
+                        <path d="M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold dark:text-white text-slate-900">欢迎使用 AI Palette! 🎨</h2>
+                <div class="space-y-2">
+                    <p class="dark:text-slate-300 text-slate-600">AI Palette 是一个统一的 AI 接口平台，支持多种平台：</p>
+                    <ul class="list-disc pl-5 dark:text-slate-300 text-slate-600 space-y-1">
+                        <li><span class="font-medium text-blue-500"><a href="https://cloud.siliconflow.cn/i/gQhQNfpv" target="_blank" class="text-blue-500 hover:text-blue-600">硅基流动</a></span> - 推荐！提供丰富的模型选择，响应速度快</li>
+                        <li><span class="font-medium">Ollama</span> - 本地部署，无需 API Key</li>
+                        <li><span class="font-medium">其他</span> - DeepSeek、OpenAI、智谱、千问等。</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 space-y-2">
+                    <p class="dark:text-slate-300 text-slate-600 font-medium">快速开始：</p>
+                    <p class="dark:text-slate-400 text-slate-600">1. 选择平台（推荐使用硅基流动，免费用Qwen2.5）</p>
+                    <p class="dark:text-slate-400 text-slate-600">2. 输入 API Key（<a href="https://cloud.siliconflow.cn/i/gQhQNfpv" target="_blank" class="text-blue-500 hover:text-blue-600">点击获取</a>）</p>
+                    <p class="dark:text-slate-400 text-slate-600">3. 开始对话！</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="dark:text-slate-300 text-slate-600">
+                            <p class="font-medium">有任何想法？</p>
+                            <p class="text-sm mt-1">扫描二维码关注我们，获取帮助和更新！</p>
+                        </div>
+                        <img src="/static/image/qrcode.jpg" alt="Connect" class="w-24 h-24 rounded-lg dark:border-slate-600 border-slate-200 border">
+                    </div>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button onclick="closeWelcomeModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-offset-white">
+                        开始使用
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 主容器 -->
     <div class="flex h-screen">
         <!-- 左侧设置面板 -->
@@ -264,20 +309,15 @@
     </div>
 
     <script>
-        // 模型配置
-        const modelConfigs = {
-            'openai': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
-            'ernie': ['ernie-bot', 'ernie-bot-4'],
-            'dashscope': ['qwen-turbo', 'qwen-plus', 'qwen-max'],
-            'zhipu': ['GLM-4-Plus', 'GLM-4-Flash'],
-            'minimax': ['abab6.5-chat', 'abab7-preview'],
-            'ollama': [],
-            'deepseek': ['deepseek-coder', 'deepseek-chat'],
-            'siliconflow': ['deepseek-ai/DeepSeek-R1', 'Qwen/Qwen2.5-7B-Instruct']
-        };
-
-        // 从本地存储加载配置
+        // 在现有的 window.onload 函数开头添加
         window.onload = function() {
+            // 检查是否是首次访问
+            const hasVisited = localStorage.getItem('hasVisitedAIPalette');
+            if (!hasVisited) {
+                showWelcomeModal();
+                localStorage.setItem('hasVisitedAIPalette', 'true');
+            }
+
             // 检测系统主题并设置初始状态
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
                 document.documentElement.classList.remove('dark');
@@ -315,6 +355,51 @@
             if (savedConfig.theme) {
                 toggleTheme(savedConfig.theme);
             }
+        };
+
+        // 显示欢迎模态框
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            const modalContent = modal.querySelector('.scale-95');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // 关闭欢迎模态框
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            const modalContent = modal.querySelector('.scale-100, .scale-95');
+            if (modalContent) {
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.style.opacity = '0';
+                modal.style.pointerEvents = 'none';
+            }, 200);
+        }
+
+        // 点击模态框背景关闭
+        document.getElementById('welcomeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeWelcomeModal();
+            }
+        });
+
+        // 模型配置
+        const modelConfigs = {
+            'openai': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
+            'ernie': ['ernie-bot', 'ernie-bot-4'],
+            'dashscope': ['qwen-turbo', 'qwen-plus', 'qwen-max'],
+            'zhipu': ['GLM-4-Plus', 'GLM-4-Flash'],
+            'minimax': ['abab6.5-chat', 'abab7-preview'],
+            'ollama': [],
+            'deepseek': ['deepseek-coder', 'deepseek-chat'],
+            'siliconflow': ['deepseek-ai/DeepSeek-R1', 'Qwen/Qwen2.5-7B-Instruct']
         };
 
         // 存储所有模型列表
@@ -522,12 +607,16 @@
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             
             // 处理标题 ### text
+            text = text.replace(/^###### (.*?)$/gm, '<h6 class="text-sm font-bold my-3">$1</h6>');
+            text = text.replace(/^##### (.*?)$/gm, '<h5 class="text-base font-bold my-3">$1</h5>');
+            text = text.replace(/^#### (.*?)$/gm, '<h4 class="text-lg font-bold my-3">$1</h4>');
             text = text.replace(/^### (.*?)$/gm, '<h3 class="text-xl font-bold my-3">$1</h3>');
             text = text.replace(/^## (.*?)$/gm, '<h2 class="text-2xl font-bold my-3">$1</h2>');
             text = text.replace(/^# (.*?)$/gm, '<h1 class="text-3xl font-bold my-4">$1</h1>');
             
+            
             // 处理列表 - text
-            text = text.replace(/^- (.*?)$/gm, '<li class="ml-4">• $1</li>');
+            text = text.replace(/^- (.*?)$/gm, '<li class="ml-4">$1</li>');
             
             // 处理分隔线 ---
             text = text.replace(/^---$/gm, '<hr class="my-4 border-t border-slate-700">');
