@@ -24,13 +24,46 @@
 
 ## 🎯 支持的模型
 
-- OpenAI GPT-4 Turbo
-- 百度 文心一言 4.0
-- 阿里 通义千问 Turbo
-- 智谱 GLM-4
-- MiniMax ABAB-6
-- DeepSeek Chat V3 / R1 (支持推理过程)
-- Ollama (本地部署)
+### OpenAI
+- GPT-4 Turbo
+- GPT-3.5 Turbo
+
+### 百度文心一言
+- ERNIE Bot 4.0
+- ERNIE Bot 8K
+
+### 阿里通义千问
+- Qwen Turbo
+- Qwen Plus
+- Qwen Max
+
+### 智谱 AI
+- GLM-4
+- GLM-4-32K
+
+### MiniMax
+- ABAB-6
+- ABAB-5.5
+
+### DeepSeek
+- DeepSeek Chat V3
+- DeepSeek Chat R1
+
+### 硅基流动：
+- DeepSeek-R1 / V3
+- Qwen 2.5 (72B/32B/14B/7B)
+- Meta Llama 3 (70B/8B)
+- Google Gemma 2 (27B/9B)
+- InternLM 2.5 (20B/7B)
+- Yi 1.5 (34B/9B/6B)
+- ChatGLM 4 (9B)
+
+### Ollama (本地部署)
+- Llama 2
+- Mistral
+- CodeLlama
+- Gemma
+……
 
 ## 📦 安装
 
@@ -45,13 +78,13 @@ from ai_palette import AIChat, Message
 
 # 方式1：直接传入配置
 chat = AIChat(
-    model_type="gpt",
-    api_key="your-api-key",
-    model="gpt-3.5-turbo"
+    provider="openai",
+    model="gpt-3.5-turbo",
+    api_key="your-api-key"
 )
 
 # 方式2：从环境变量读取配置
-chat = AIChat(model_type="gpt")  # 会自动读取 GPT_API_KEY 和 GPT_MODEL
+chat = AIChat(provider="openai")  # 会自动读取 OPENAI_API_KEY 和 OPENAI_MODEL
 
 # 基本对话
 response = chat.ask("你好，请介绍一下自己")
@@ -63,7 +96,7 @@ response = chat.ask("头痛该怎么办？")
 print(response)
 
 # 流式输出
-chat = AIChat(model_type="gpt", enable_streaming=True)
+chat = AIChat(provider="openai", enable_streaming=True)
 for chunk in chat.ask("讲一个故事"):
     print(chunk, end="", flush=True)
 
@@ -77,7 +110,7 @@ messages.append(Message(role="user", content="你还记得我的名字吗？"))
 response = chat.ask("你还记得我的名字吗？", messages=messages)
 
 # 上下文管理
-chat = AIChat(model_type="gpt")
+chat = AIChat(provider="openai")
 
 # 添加系统提示词（只能添加一个）
 chat.add_context("你是一个专业的Python导师", role="system")
@@ -103,8 +136,8 @@ chat.clear_context(include_system_prompt=True)
 ```bash
 # OpenAI GPT 配置
 # https://platform.openai.com/api-keys
-GPT_API_KEY=sk-xxxxxxxxxxxxxxxx
-GPT_MODEL=gpt-3.5-turbo
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+OPENAI_MODEL=gpt-3.5-turbo
 
 # 文心一言配置
 # https://cloud.baidu.com/product/wenxinworkshop
@@ -145,7 +178,7 @@ from ai_palette import AIChat
 
 # 创建 Deepseek 实例
 chat = AIChat(
-    model_type="deepseek",
+    provider="deepseek",
     model="deepseek-reasoner",
     enable_streaming=True  # 启用流式输出
 )
@@ -188,7 +221,7 @@ export DEEPSEEK_API_KEY="your-api-key"
   ```python
   # 复杂问题使用更长的超时时间
   chat = AIChat(
-      model_type="deepseek",
+      provider="deepseek",
       model="deepseek-reasoner",
       timeout=180  # 3分钟超时
   )
@@ -200,7 +233,7 @@ export DEEPSEEK_API_KEY="your-api-key"
 
 ```bash
 # 只测试指定的模型
-export TEST_MODELS=gpt,deepseek,ollama
+export TEST_MODELS=openai,deepseek,ollama
 python test_ai_palette.py
 
 # 测试所有模型
@@ -229,7 +262,7 @@ response = chat.ask("我们去散步吧", messages=messages)
 
 ```python
 chat = AIChat(
-    model_type="gpt",
+    provider="openai",
     retry_count=5,  # 最大重试5次
     timeout=60     # 请求超时时间60秒
 )
@@ -310,12 +343,45 @@ It is great for AI IDEs such as Cursor to use as a context.
 
 ## 🎯 Supported Models
 
-- OpenAI GPT
-- Baidu ERNIE
-- Alibaba Qwen
-- Zhipu ChatGLM
-- MiniMax
-- Ollama
+### OpenAI
+- GPT-4 Turbo
+- GPT-3.5 Turbo
+
+### Baidu ERNIE
+- ERNIE Bot 4.0
+- ERNIE Bot 8K
+
+### Alibaba Qwen
+- Qwen Turbo
+- Qwen Plus
+- Qwen Max
+
+### Zhipu AI
+- GLM-4
+- GLM-4-32K
+
+### MiniMax
+- ABAB-6
+- ABAB-5.5
+
+### DeepSeek
+- DeepSeek Chat V3
+- DeepSeek Chat R1
+
+### SiliconFlow
+- DeepSeek-R1 / V3
+- Qwen 2.5 (72B/32B/14B/7B)
+- Meta Llama 3 (70B/8B)
+- Google Gemma 2 (27B/9B)
+- InternLM 2.5 (20B/7B)
+- Yi 1.5 (34B/9B/6B)
+- ChatGLM 4 (9B)
+
+### Ollama (Local Deployment)
+- Llama 2
+- Mistral
+- CodeLlama
+- Gemma
 
 ## 📦 Installation
 
@@ -330,13 +396,13 @@ from ai_palette import AIChat, Message
 
 # Method 1: Direct configuration
 chat = AIChat(
-    model_type="gpt",
-    api_key="your-api-key",
-    model="gpt-3.5-turbo"
+    provider="openai",
+    model="gpt-3.5-turbo",
+    api_key="your-api-key"
 )
 
 # Method 2: Read from environment variables
-chat = AIChat(model_type="gpt")  # Will automatically read GPT_API_KEY and GPT_MODEL
+chat = AIChat(provider="openai")  # Will automatically read OPENAI_API_KEY and OPENAI_MODEL
 
 # Basic conversation
 response = chat.ask("Hello, please introduce yourself")
@@ -348,7 +414,7 @@ response = chat.ask("What should I do for a headache?")
 print(response)
 
 # Streaming output
-chat = AIChat(model_type="gpt", enable_streaming=True)
+chat = AIChat(provider="openai", enable_streaming=True)
 for chunk in chat.ask("Tell me a story"):
     print(chunk, end="", flush=True)
 
@@ -361,23 +427,23 @@ messages.append(Message(role="assistant", content=response))
 messages.append(Message(role="user", content="Do you remember my name?"))
 response = chat.ask("Do you remember my name?", messages=messages)
 
-# 上下文管理
-chat = AIChat(model_type="gpt")
+# Context management
+chat = AIChat(provider="openai")
 
-# 添加系统提示词（只能添加一个）
+# Add system prompt (only one can be set)
 chat.add_context("You are a Python tutor", role="system")
 
-# 添加对话历史
+# Add dialogue history
 chat.add_context("I want to learn Python", role="user")
 chat.add_context("Great, let's start with the basics", role="assistant")
 
-# 发送新的问题
-response = chat.ask("I should start from where?")
+# Send new question
+response = chat.ask("Where should I start?")
 
-# 清除普通上下文，保留系统提示词
+# Clear regular context, keep system prompt
 chat.clear_context()
 
-# 清除所有上下文（包括系统提示词）
+# Clear all context (including system prompt)
 chat.clear_context(include_system_prompt=True)
 ```
 
@@ -388,8 +454,8 @@ Create a `.env` file, refer to `.env.example` for configuration:
 ```bash
 # OpenAI GPT Configuration
 # https://platform.openai.com/api-keys
-GPT_API_KEY=sk-xxxxxxxxxxxxxxxx
-GPT_MODEL=gpt-3.5-turbo
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+OPENAI_MODEL=gpt-3.5-turbo
 
 # ERNIE Configuration
 # https://cloud.baidu.com/product/wenxinworkshop
@@ -443,7 +509,7 @@ Can be customized when creating an instance:
 
 ```python
 chat = AIChat(
-    model_type="gpt",
+    provider="openai",
     retry_count=5,  # Maximum 5 retries
     timeout=60     # Request timeout 60 seconds
 )
@@ -501,7 +567,7 @@ from ai_palette import AIChat
 
 # Create Deepseek instance
 chat = AIChat(
-    model_type="deepseek",
+    provider="deepseek",
     model="deepseek-reasoner",
     enable_streaming=True  # Enable streaming output
 )
@@ -544,7 +610,7 @@ Run the program and enter API Key based on the prompt.
   ```python
   # Use longer timeout for complex questions
   chat = AIChat(
-      model_type="deepseek",
+      provider="deepseek",
       model="deepseek-reasoner",
       timeout=180  # 3 minutes timeout
   )

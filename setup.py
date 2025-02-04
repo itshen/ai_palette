@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ai-palette",
-    version="0.1.1",
+    version="0.1.2",
     author="Eason Tsui",
     author_email="easontsui@gmail.com",
     description="一个统一的AI聊天接口，支持多个AI提供商",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/easontsui/ai_palette",
+    url="https://github.com/itshen/ai_palette",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -24,6 +24,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     python_requires=">=3.7",
     install_requires=[
