@@ -29,7 +29,7 @@
 - 阿里 通义千问 Turbo
 - 智谱 GLM-4
 - MiniMax ABAB-6
-- DeepSeek Chat V3
+- DeepSeek Chat V3 / R1 (支持推理过程)
 - Ollama (本地部署)
 
 ## 📦 安装
@@ -135,6 +135,64 @@ OLLAMA_MODEL=llama2
 ```
 
 ## 🎯 高级用法
+
+### Deepseek 模型使用
+
+Deepseek 模型具有独特的推理能力，可以展示 AI 的思考过程：
+
+```python
+from ai_palette import AIChat
+
+# 创建 Deepseek 实例
+chat = AIChat(
+    model_type="deepseek",
+    model="deepseek-reasoner",
+    enable_streaming=True  # 启用流式输出
+)
+
+# 非流式请求
+response = chat.ask("解释量子纠缠现象")
+print("回答:", response)
+print("推理过程:", chat.get_last_reasoning_content())
+
+# 流式请求
+for chunk in chat.ask("为什么月亮总是同一面朝向地球？"):
+    if chunk["type"] == "reasoning":
+        print("\n[推理过程]", chunk["content"], end="")
+    else:  # type == "content"
+        print("\n[最终答案]", chunk["content"], end="")
+```
+
+#### Deepseek API Key 设置
+
+有三种方式设置 Deepseek API Key：
+
+1. 命令行参数：
+```bash
+python test_deepseek.py --api-key YOUR_API_KEY --save
+```
+
+2. 环境变量：
+```bash
+export DEEPSEEK_API_KEY="your-api-key"
+```
+
+3. 交互式输入：
+直接运行程序，根据提示输入 API Key。
+
+#### Deepseek 特有功能
+
+- 推理过程展示：通过 `get_last_reasoning_content()` 获取 AI 的推理过程
+- 流式输出区分：支持同时获取推理过程和最终答案的流式输出
+- 超时控制：可以根据问题复杂度设置不同的超时时间
+  ```python
+  # 复杂问题使用更长的超时时间
+  chat = AIChat(
+      model_type="deepseek",
+      model="deepseek-reasoner",
+      timeout=180  # 3分钟超时
+  )
+  ```
 
 ### 选择性测试
 
@@ -307,14 +365,14 @@ response = chat.ask("Do you remember my name?", messages=messages)
 chat = AIChat(model_type="gpt")
 
 # 添加系统提示词（只能添加一个）
-chat.add_context("你是一个专业的Python导师", role="system")
+chat.add_context("You are a Python tutor", role="system")
 
 # 添加对话历史
-chat.add_context("我想学习Python", role="user")
-chat.add_context("很好，Python是一个很好的选择。我们从基础开始吧。", role="assistant")
+chat.add_context("I want to learn Python", role="user")
+chat.add_context("Great, let's start with the basics", role="assistant")
 
 # 发送新的问题
-response = chat.ask("我应该从哪里开始？")
+response = chat.ask("I should start from where?")
 
 # 清除普通上下文，保留系统提示词
 chat.clear_context()
@@ -433,3 +491,61 @@ Visit `http://localhost:5000` after startup. Main features:
 ## 📄 License
 
 MIT 
+
+### Deepseek Model Usage
+
+Deepseek model has unique reasoning ability, showing AI's thinking process:
+
+```python
+from ai_palette import AIChat
+
+# Create Deepseek instance
+chat = AIChat(
+    model_type="deepseek",
+    model="deepseek-reasoner",
+    enable_streaming=True  # Enable streaming output
+)
+
+# Non-streaming request
+response = chat.ask("Explain quantum entanglement phenomenon")
+print("Answer:", response)
+print("Reasoning:", chat.get_last_reasoning_content())
+
+# Streaming request
+for chunk in chat.ask("Why does the moon always face the same side towards the earth?"):
+    if chunk["type"] == "reasoning":
+        print("\n[Reasoning]", chunk["content"], end="")
+    else:  # type == "content"
+        print("\n[Final Answer]", chunk["content"], end="")
+```
+
+#### Deepseek API Key Setting
+
+There are three ways to set Deepseek API Key:
+
+1. Command line argument:
+```bash
+python test_deepseek.py --api-key YOUR_API_KEY --save
+```
+
+2. Environment variable:
+```bash
+export DEEPSEEK_API_KEY="your-api-key"
+```
+
+3. Interactive input:
+Run the program and enter API Key based on the prompt.
+
+#### Deepseek Specific Features
+
+- Reasoning Process Display: Get AI's reasoning process through `get_last_reasoning_content()`
+- Streaming Output Differentiation: Support streaming output that simultaneously gets reasoning process and final answer
+- Timeout Control: Different timeout times can be set based on the complexity of the question
+  ```python
+  # Use longer timeout for complex questions
+  chat = AIChat(
+      model_type="deepseek",
+      model="deepseek-reasoner",
+      timeout=180  # 3 minutes timeout
+  )
+  ```

@@ -90,8 +90,8 @@ def get_model_config(model_type: str) -> Dict[str, str]:
             'api_url': 'http://localhost:11434/api/chat'
         },
         'deepseek': {
-            'model': 'deepseek-chat',  # DeepSeek-V3 默认模型
-            'api_url': 'https://api.deepseek.com/v1'  # 可选，与 OpenAI 兼容的 base_url
+            'model': 'deepseek-reasoner',  # 使用 deepseek-reasoner 模型
+            'api_url': 'https://api.deepseek.com/v1/completions'  # 更新为正确的 API 地址
         },
         'ernie': {
             'model': 'ernie-4.0',  # 文心一言 4.0
@@ -144,7 +144,12 @@ def test_streaming_chat(model_type: str):
         print(f"\n用户: {prompt}")
         print("助手: ", end="", flush=True)
         for chunk in chat.ask(prompt):
-            print(chunk, end="", flush=True)
+            if isinstance(chunk, dict):
+                if chunk["type"] == "reasoning":
+                    print("\n[推理过程] ", end="", flush=True)
+                print(chunk["content"], end="", flush=True)
+            else:
+                print(chunk, end="", flush=True)
         print("\n")
         time.sleep(0.5)
 
@@ -227,6 +232,67 @@ def test_context_management(model_type: str):
     except ValueError as e:
         print(f"预期的错误: {str(e)}")
 
+def test_deepseek_reasoning(model_type: str):
+    """测试 Deepseek 推理功能"""
+    if model_type != 'deepseek':
+        return
+        
+    print(f"\n=== 测试 Deepseek 推理功能 ===")
+    config = get_model_config(model_type)
+    chat = AIChat(
+        model_type=model_type,
+        api_key=get_api_key(model_type),
+        **config
+    )
+    
+    # 测试非流式请求
+    print("\n1. 测试非流式请求:")
+    prompt = "解释一下为什么天是蓝色的？"
+    print(f"用户: {prompt}")
+    response = chat.ask(prompt)
+    print("回答:", response)
+    print("推理过程:", chat.get_last_reasoning_content())
+    
+    # 测试流式请求
+    print("\n2. 测试流式请求:")
+    chat.enable_streaming = True
+    prompt = "为什么飞机能飞在天上？"
+    print(f"用户: {prompt}")
+    
+    reasoning_text = ""
+    content_text = ""
+    
+    print("\n[推理过程]")
+    print("-" * 50)
+    for chunk in chat.ask(prompt):
+        if chunk["type"] == "reasoning":
+            reasoning_text += chunk["content"]
+            print(chunk["content"], end="", flush=True)
+        else:  # type == "content"
+            if content_text == "":
+                print("\n\n[最终回答]")
+                print("-" * 50)
+            content_text += chunk["content"]
+            print(chunk["content"], end="", flush=True)
+    print("\n")
+    
+    # 测试多轮对话中的推理
+    print("\n3. 测试多轮对话中的推理:")
+    chat.enable_streaming = False  # 切换回非流式模式
+    
+    conversations = [
+        "地球是圆的还是平的？",
+        "你能解释一下你是如何得出这个结论的吗？",
+        "这个解释很有说服力，那月球呢？"
+    ]
+    
+    for prompt in conversations:
+        print(f"\n用户: {prompt}")
+        response = chat.ask(prompt)
+        print("回答:", response)
+        print("推理过程:", chat.get_last_reasoning_content())
+        time.sleep(0.5)
+
 def main():
     # 设置环境变量（测试时替换为实际的 API key）
     os.environ.update({
@@ -241,7 +307,7 @@ def main():
     })
     
     # 要测试的模型列表
-    models = ['glm', 'qwen', 'minimax', 'gpt', 'ollama', 'deepseek', 'ernie']
+    models = ['deepseek', 'glm', 'qwen', 'minimax', 'gpt', 'ollama', 'ernie']
     
     # 获取要测试的模型
     test_models = os.getenv('TEST_MODELS', '').lower().split(',')
@@ -255,7 +321,7 @@ def main():
             # 检查是否有必要的环境变量
             if not get_api_key(model) and model != 'ollama':
                 print(f"跳过 {model.upper()} 测试：缺少必要的 API key")
-                print(f"请设置环境变量 {env_vars[model]} 或访问 {api_urls[model]} 获取 API key")
+                print(f"请设置环境变量 {model.upper()}_API_KEY 或访问相应网站获取 API key")
                 continue
             
             # 测试基本对话
@@ -272,6 +338,10 @@ def main():
             
             # 测试上下文管理
             test_context_management(model)
+            time.sleep(1)
+            
+            # 测试 Deepseek 推理功能
+            test_deepseek_reasoning(model)
             time.sleep(1)
             
         except Exception as e:
