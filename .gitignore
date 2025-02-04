@@ -20,9 +20,11 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
-venv/
+# Environment
+.env
+.venv
 env/
+venv/
 ENV/
 
 # IDE
@@ -31,8 +33,25 @@ ENV/
 *.swp
 *.swo
 
-# Environment variables
-.env
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Virtual Environment
+venv/
+env/
+ENV/
 
 # Logs
 *.log

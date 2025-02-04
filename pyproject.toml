@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-palette"
+version = "0.1.1"
+authors = [
+    { name = "AI Palette Team", email = "eason@miyang.ai" }
+]
+description = "A lightweight and elegant unified AI interface"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests>=2.31.0",
+    "aiohttp>=3.9.1",
+    "loguru>=0.7.2",
+    "python-dotenv>=1.0.0",
+    "typing-extensions>=4.9.0",
+    "flask>=3.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/itshen/ai_palette"
+Repository = "https://github.com/itshen/ai_palette.git" 
