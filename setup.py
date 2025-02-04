@@ -13,6 +13,14 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/itshen/ai_palette",
     packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        'ai_palette': [
+            'templates/*.html',
+            'static/*',
+            'static/**/*'
+        ],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -43,7 +51,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'ai-palette-server=app:run_server',
+            'ai-palette-server=ai_palette.app:run_server',
         ],
     },
 ) 
