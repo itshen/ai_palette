@@ -29,9 +29,21 @@ setup(
     ],
     python_requires=">=3.7",
     install_requires=[
-        "requests>=2.25.0",
-        "aiohttp>=3.8.0",
-        "python-dotenv>=0.19.0",
-        "loguru>=0.5.0",
+        "requests>=2.31.0",
+        "aiohttp>=3.9.1",
+        "python-dotenv>=1.0.0",
+        "loguru>=0.7.2",
+        "flask>=3.0.0",
+        "typing-extensions>=4.9.0",
     ],
+    extras_require={
+        'test': [
+            'pytest>=7.4.3',
+        ],
+    },
+    entry_points={
+        'console_scripts': [
+            'ai-palette-server=app:run_server',
+        ],
+    },
 ) 

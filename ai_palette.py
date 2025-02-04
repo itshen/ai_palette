@@ -337,6 +337,15 @@ class AIChat:
                 logger.error(error_msg)
                 raise ValueError(error_msg)
             
+            # 根据不同的提供商处理响应
+            if self.provider == APIProvider.OLLAMA:
+                if "message" not in response_json:
+                    error_msg = "Ollama响应缺少 'message' 字段"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+                return response_json["message"]["content"]
+            
+            # 其他模型需要检查 choices 字段
             if "choices" not in response_json:
                 error_msg = "响应缺少 'choices' 字段"
                 logger.error(error_msg)

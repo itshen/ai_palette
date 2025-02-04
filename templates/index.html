@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {}
             }
@@ -15,20 +16,7 @@
     <style type="text/tailwindcss">
         @layer components {
             .gradient-bg {
-                background: linear-gradient(120deg, #1a1f2c 0%, #1e2433 50%, #1a1f2c 100%);
-                background-size: 400% 400%;
-                animation: gradient 15s ease infinite;
-            }
-            @keyframes gradient {
-                0% {
-                    background-position: 0% 50%;
-                }
-                50% {
-                    background-position: 100% 50%;
-                }
-                100% {
-                    background-position: 0% 50%;
-                }
+                @apply dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 bg-gradient-to-br from-slate-50 to-slate-100;
             }
             .floating-image {
                 @apply fixed left-8 top-8 w-[320px] rounded-lg shadow-lg transition-transform duration-300
@@ -48,10 +36,13 @@
                 40%, 80% { transform: rotate(10deg) }
             }
             .input-base {
-                @apply w-full rounded-lg border border-gray-700/50 bg-gray-800/50 shadow-sm backdrop-blur-sm
-                       px-4 py-3 text-gray-100
-                       hover:border-blue-400/40 hover:bg-gray-800/70
-                       focus:border-blue-400 focus:bg-gray-800/90 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                @apply w-full rounded-lg border shadow-sm backdrop-blur-sm px-4 py-3
+                       dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-100
+                       border-gray-200 bg-white/90 text-gray-900
+                       dark:hover:border-blue-400/40 dark:hover:bg-gray-800/70
+                       hover:border-blue-400/40 hover:bg-white
+                       dark:focus:border-blue-400 dark:focus:bg-gray-800/90 dark:focus:ring-2 dark:focus:ring-blue-500/20
+                       focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none
                        transition-all duration-200;
             }
             .btn-primary {
@@ -63,139 +54,250 @@
                        shadow-sm hover:shadow-blue-500/10 focus:shadow-md focus:outline-none;
             }
             .label-text {
-                @apply block text-sm font-medium text-gray-300 mb-1.5;
+                @apply block text-sm font-medium mb-1.5
+                       dark:text-gray-300 text-gray-700;
             }
             .response-box {
-                @apply w-full rounded-lg bg-gray-800/50 p-4 min-h-[100px] whitespace-pre-wrap 
-                       border border-gray-700/50 backdrop-blur-sm shadow-sm text-gray-100;
+                @apply w-full rounded-lg p-4 min-h-[100px] whitespace-pre-wrap backdrop-blur-sm shadow-sm
+                       dark:bg-gray-800/50 dark:border dark:border-gray-700/50 dark:text-gray-100
+                       bg-white/90 border border-gray-200 text-gray-900;
             }
             select {
-                @apply input-base appearance-none bg-no-repeat cursor-pointer pr-10 text-gray-100;
+                @apply input-base appearance-none bg-no-repeat cursor-pointer pr-10;
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
                 background-position: right 0.75rem center;
                 background-size: 1.5em 1.5em;
             }
             input[type="checkbox"] {
-                @apply w-5 h-5 rounded-md text-blue-500 bg-gray-800 border-gray-700
-                       cursor-pointer transition-colors duration-200
-                       focus:ring-0 focus:ring-offset-0;
+                @apply w-5 h-5 rounded-md cursor-pointer transition-colors duration-200
+                       focus:ring-0 focus:ring-offset-0
+                       dark:border-gray-700 dark:bg-gray-800 dark:text-blue-500
+                       border-gray-300 bg-white text-blue-500;
             }
             ::placeholder {
-                @apply text-gray-500;
+                @apply dark:text-gray-500 text-gray-400;
             }
             option {
-                @apply bg-gray-800 text-gray-100;
+                @apply dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900;
             }
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg py-12 px-4 sm:px-6 lg:px-8">
-    <!-- 浮动图片 -->
-    <img src="/static/image/connect.jpg" alt="Connect" class="floating-image">
-    
-    <!-- GitHub Corner -->
-    <a href="https://github.com/itshen/ai_palette" class="github-corner" aria-label="View source on GitHub">
-        <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
-            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
-            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
-        </svg>
-    </a>
-
-    <div class="max-w-4xl mx-auto">
-        <div class="bg-gray-800/40 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
-            <div class="bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-6 border-b border-gray-700/50">
-                <h1 class="text-3xl font-bold text-white text-center">AI Palette Playground 🎨</h1>
-                <p class="text-gray-300 text-center mt-2">轻量优雅的统一 AI 接口，一个调用满足所有需求</p>
-            </div>
-            
-            <div class="p-8">
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="space-y-5">
-                        <div>
-                            <label class="label-text">模型类型</label>
-                            <div class="relative">
-                                <select id="modelType" onchange="handleModelTypeChange()" class="input-base input-padding focus-ring">
-                                    <option value="gpt">OpenAI GPT</option>
-                                    <option value="ernie">百度文心一言</option>
-                                    <option value="qwen">阿里通义千问</option>
-                                    <option value="minimax">MiniMax</option>
-                                    <option value="glm">ChatGLM</option>
-                                    <option value="ollama">Ollama</option>
-                                </select>
-                                <a id="apiKeyHelp" href="#" target="_blank" class="absolute right-0 top-0 h-full px-3 flex items-center text-blue-400 hover:text-blue-300">
-                                    获取Key
-                                </a>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="label-text">API Key</label>
-                            <div class="relative">
-                                <input type="password" id="apiKey" class="input-base input-padding focus-ring pr-10" placeholder="输入你的 API Key">
-                                <button onclick="toggleApiKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500 hover:text-gray-700">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+<body class="dark:bg-slate-900 dark:text-slate-200 bg-slate-50 text-slate-900">
+    <!-- 主容器 -->
+    <div class="flex h-screen">
+        <!-- 左侧设置面板 -->
+        <div class="w-80 border-r dark:border-slate-700 border-slate-200 dark:bg-slate-800 bg-white p-6 flex flex-col">
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h1 class="text-2xl font-bold dark:text-white text-slate-800">AI Palette 🎨</h1>
+                    <div class="flex">
+                        <div class="rounded-md border dark:border-slate-200/20 border-slate-200">
+                            <div class="flex text-[10px] font-medium leading-4">
+                                <button onclick="toggleTheme('dark')" class="theme-toggle dark-toggle flex w-auto gap-1 rounded-l-md px-2 py-1 focus:outline-none dark:text-slate-300 text-slate-500 dark:hover:bg-slate-700/50 hover:bg-slate-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="inline-flex h-3.5 w-3.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                                     </svg>
-                                    <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500 hover:text-gray-700 hidden">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                </button>
+                                <button onclick="toggleTheme('light')" class="theme-toggle light-toggle flex gap-1 rounded-r-md px-2 py-1 focus:outline-none dark:text-slate-300 text-slate-500 dark:hover:bg-slate-700/50 hover:bg-slate-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="inline-flex h-3.5 w-3.5" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
                                     </svg>
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <p class="dark:text-slate-400 text-slate-600 text-sm">统一 AI 接口，一个调用满足所有需求</p>
+            </div>
 
-                        <div>
-                            <label class="label-text">模型名称</label>
-                            <input type="text" id="model" list="modelList" class="input-base input-padding focus-ring" placeholder="选择或输入模型名称">
-                            <datalist id="modelList"></datalist>
-                        </div>
+            <!-- 模型设置 -->
+            <div class="space-y-4 flex-1">
+                <div>
+                    <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-1">模型提供商</label>
+                    <select id="modelType" onchange="handleModelTypeChange()" class="input-base">
+                        <option value="siliconflow">硅基流动</option>
+                        <option value="deepseek">DeepSeek</option>
+                        <option value="ollama">Ollama</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="zhipu">智谱AI</option>
+                        <option value="dashscope">通义千问</option>
+                        <option value="minimax">MiniMax</option>
+                        <option value="ernie">百度文心</option>
+                    </select>
+                </div>
 
-                        <div class="flex items-center space-x-3">
-                            <input type="checkbox" id="enableStreaming">
-                            <label class="label-text !mb-0">启用流式输出</label>
-                        </div>
-
-                        <div>
-                            <label class="label-text">提示词</label>
-                            <textarea id="prompt" rows="4" class="input-base input-padding focus-ring" placeholder="输入你想问的问题..."></textarea>
-                        </div>
-
-                        <button onclick="sendMessage()" class="btn-primary">
-                            发送
+                <div>
+                    <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-1">API Key</label>
+                    <div class="relative">
+                        <input type="password" id="apiKey" class="input-base" 
+                            placeholder="输入你的 API Key"
+                            onblur="handleApiKeyChange()">
+                        <button onclick="toggleApiKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
+                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                <path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M22 12c-2.667 4.667 -6 7 -10 7s-7.333 -2.333 -10 -7c2.667 -4.667 6 -7 10 -7s7.333 2.333 10 7"></path>
+                            </svg>
                         </button>
+                    </div>
+                    <a id="apiKeyHelp" href="#" target="_blank" class="text-sm text-blue-500 hover:text-blue-600 mt-1 inline-block">
+                        跳转官网获取 API Key
+                    </a>
+                </div>
 
-                        <div>
-                            <label class="label-text">回复</label>
-                            <div id="response" class="response-box"></div>
+                <div>
+                    <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-1">模型名称</label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="model" 
+                            class="input-base pr-20" 
+                            placeholder="选择或输入模型名称"
+                            oninput="filterModels(this.value)"
+                            onclick="showModelDropdown()"
+                            autocomplete="off"
+                        >
+                        <button 
+                            onclick="refreshModels()"
+                            type="button"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+                                <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+                            </svg>
+                        </button>
+                        <!-- 模型列表下拉框 -->
+                        <div id="modelDropdown" class="hidden absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-lg dark:bg-slate-700 bg-white dark:border-slate-600 border-slate-200 border shadow-lg">
+                            <div id="modelList" class="py-1">
+                                <!-- 模型选项将通过 JavaScript 动态添加 -->
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="enableStreaming" class="rounded dark:border-slate-600 border-slate-300">
+                    <label class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
+                </div>
+
+                <div>
+                    <button onclick="clearAllMessages()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg dark:text-slate-400 text-slate-500 dark:hover:bg-slate-700/50 hover:bg-slate-100 dark:hover:text-slate-300 hover:text-slate-700 dark:border-slate-700/50 border-slate-200 border">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span class="text-sm">清空对话历史</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 底部链接 -->
+            <div class="mt-auto space-y-4">
+                <!-- GitHub 链接 -->
+                <div class="text-center">
+                    <a href="https://github.com/itshen/ai_palette" class="inline-flex items-center gap-2 text-sm font-medium dark:text-slate-200 text-slate-600 hover:text-blue-500 transition-colors duration-200" target="_blank">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/>
+                        </svg>
+                        GitHub 仓库
+                    </a>
+                </div>
+                <!-- 二维码 -->
+                <div>
+                    <img src="/static/image/connect.jpg" alt="Connect" class="w-full rounded-lg dark:border-slate-600 border-slate-200 border">
                 </div>
             </div>
         </div>
 
-        <div class="mt-4 text-center text-sm text-gray-400 space-x-4">
-            <a href="https://github.com/itshen/ai_palette" class="hover:text-blue-400 transition-colors" target="_blank">
-                GitHub 仓库
-            </a>
-            <span class="text-gray-600">|</span>
-            <span class="text-gray-400">© 2024 洛小山</span>
+        <!-- 右侧对话界面 -->
+        <div class="flex-1 flex flex-col">
+            <!-- 消息列表 -->
+            <div class="flex-1 overflow-y-auto p-4" id="messageList">
+                <!-- 对话建议 -->
+                <div id="suggestionBox" class="mb-4">
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            帮我制定一份一周健康饮食计划
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            如何缓解工作压力和情绪
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            推荐一些室内植物养护小技巧
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            分享一些提高睡眠质量的方法
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            推荐几道简单美味的家常菜
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            如何整理和收纳小户型空间
+                        </button>
+                        <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                            分享一些省钱小妙招
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入框 -->
+            <div class="p-4 border-t dark:border-slate-700 border-slate-200">
+                <form onsubmit="sendMessage(); return false;">
+                    <div class="relative">
+                        <textarea 
+                            id="prompt" 
+                            class="input-base pr-24 resize-none"
+                            rows="3"
+                            placeholder="输入你想问的问题..."
+                        ></textarea>
+                        <button 
+                            type="submit"
+                            class="absolute bottom-3 right-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-offset-white"
+                        >
+                            发送
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
         // 模型配置
         const modelConfigs = {
-            'gpt': ['gpt-4o-mini','gpt-4o', 'gpt-3.5-turbo'],
+            'openai': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
             'ernie': ['ernie-bot', 'ernie-bot-4'],
-            'qwen': ['qwen-turbo', 'qwen-plus', 'qwen-max'],
-            'glm': ['GLM-4-Plus', 'GLM-4-Flash'],
+            'dashscope': ['qwen-turbo', 'qwen-plus', 'qwen-max'],
+            'zhipu': ['GLM-4-Plus', 'GLM-4-Flash'],
             'minimax': ['abab6.5-chat', 'abab7-preview'],
-            'ollama': []
+            'ollama': [],
+            'deepseek': ['deepseek-coder', 'deepseek-chat'],
+            'siliconflow': ['deepseek-ai/DeepSeek-R1', 'Qwen/Qwen2.5-7B-Instruct']
         };
 
         // 从本地存储加载配置
         window.onload = function() {
+            // 检测系统主题并设置初始状态
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.classList.remove('dark');
+                updateThemeButtons('light');
+            } else {
+                updateThemeButtons('dark');
+            }
+
+            // 监听系统主题变化
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.add('dark');
+                    updateThemeButtons('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    updateThemeButtons('light');
+                }
+            });
+
+            // 加载已保存的配置
             const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
             if (savedConfig.modelType) {
                 document.getElementById('modelType').value = savedConfig.modelType;
@@ -207,20 +309,136 @@
             if (savedConfig.model) {
                 document.getElementById('model').value = savedConfig.model;
             }
+            if (savedConfig.hasOwnProperty('enableStreaming')) {
+                document.getElementById('enableStreaming').checked = savedConfig.enableStreaming;
+            }
+            if (savedConfig.theme) {
+                toggleTheme(savedConfig.theme);
+            }
         };
 
-        // 处理模型类型变化
+        // 存储所有模型列表
+        let allModels = [];
+        
+        // 刷新模型列表
+        async function refreshModels() {
+            const modelType = document.getElementById('modelType').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const modelList = document.getElementById('modelList');
+            
+            try {
+                const response = await fetch(`/api/models?type=${modelType}&api_key=${apiKey}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allModels = data.models;
+                    updateModelList(allModels);
+                } else {
+                    showError(data.error || '获取模型列表失败');
+                }
+            } catch (error) {
+                showError('获取模型列表失败: ' + error.message);
+            }
+        }
+        
+        // 修改过滤模型列表函数
+        function filterModels(query) {
+            const dropdown = document.getElementById('modelDropdown');
+            const filteredModels = allModels.filter(model => 
+                model.toLowerCase().includes(query.toLowerCase())
+            );
+            updateModelList(filteredModels);
+            if (filteredModels.length > 0) {
+                dropdown.classList.remove('hidden');
+            }
+        }
+        
+        // 修改显示模型下拉列表函数
+        function showModelDropdown() {
+            const dropdown = document.getElementById('modelDropdown');
+            
+            // 如果还没有模型列表数据，先获取
+            if (allModels.length === 0) {
+                refreshModels();
+            } else {
+                // 显示所有模型
+                updateModelList(allModels);
+                dropdown.classList.remove('hidden');
+            }
+        }
+        
+        // 更新模型列表显示
+        function updateModelList(models) {
+            const modelList = document.getElementById('modelList');
+            modelList.innerHTML = '';
+            
+            models.forEach(model => {
+                const option = document.createElement('div');
+                option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
+                option.textContent = model;
+                option.onclick = () => {
+                    document.getElementById('model').value = model;
+                    document.getElementById('modelDropdown').classList.add('hidden');
+                };
+                modelList.appendChild(option);
+            });
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            // 创建错误提示
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 flex w-full max-w-md items-start justify-between rounded-xl dark:bg-slate-800 bg-white p-4 shadow-xl border dark:border-slate-700 border-slate-200';
+            errorDiv.innerHTML = `
+                <div class="flex gap-2 sm:gap-4">
+                    <span class="text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                            <path d="M12 9v4"></path>
+                            <path d="M12 16v.01"></path>
+                        </svg>
+                    </span>
+                    <div class="flex-1">
+                        <strong class="block font-medium dark:text-slate-200 text-slate-900">错误</strong>
+                        <p class="mt-1 text-sm dark:text-slate-300 text-slate-600">${message}</p>
+                    </div>
+                </div>
+                <button onclick="this.parentElement.remove()" class="dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path d="M18 6l-12 12"></path>
+                        <path d="M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            // 添加进入动画
+            errorDiv.style.opacity = '0';
+            errorDiv.style.transform = 'translateY(-20px)';
+            errorDiv.style.transition = 'all 0.3s ease-out';
+            
+            // 强制重绘
+            errorDiv.offsetHeight;
+            
+            // 显示
+            errorDiv.style.opacity = '1';
+            errorDiv.style.transform = 'translateY(0)';
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transform = 'translateY(-20px)';
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 3000);
+        }
+        
+        // 修改处理模型类型变化的函数
         async function handleModelTypeChange() {
             const modelType = document.getElementById('modelType').value;
-            const modelList = document.getElementById('modelList');
-            const modelInput = document.getElementById('model');
             const apiKeyInput = document.getElementById('apiKey');
             
             // 更新帮助链接
             updateApiKeyHelpLink();
-            
-            // 清空模型列表
-            modelList.innerHTML = '';
             
             // 从本地存储获取该模型类型的上次配置
             const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
@@ -229,164 +447,556 @@
             apiKeyInput.value = savedConfig[`${modelType}_apiKey`] || '';
             
             // 恢复上次使用的模型
-            modelInput.value = savedConfig[`${modelType}_lastModel`] || '';
+            document.getElementById('model').value = savedConfig[`${modelType}_lastModel`] || '';
             
-            // 更新模型列表
-            if (modelType === 'ollama') {
-                try {
-                    const response = await fetch('/api/models/ollama');
-                    const data = await response.json();
-                    if (data.success) {
-                        data.models.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model;
-                            modelList.appendChild(option);
-                        });
-                    }
-                } catch (error) {
-                    console.error('获取Ollama模型列表失败:', error);
-                }
-            } else {
-                modelConfigs[modelType].forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    modelList.appendChild(option);
-                });
+            // 自动刷新模型列表
+            if (modelType === 'ollama' || ['openai', 'dashscope', 'deepseek', 'siliconflow'].includes(modelType)) {
+                refreshModels();
             }
         }
 
-        // 修改保存配置的函数，同时保存 API Key 和最后使用的模型
+        // 点击页面其他地方时隐藏下拉框
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('modelDropdown');
+            const modelInput = document.getElementById('model');
+            const refreshButton = modelInput.nextElementSibling;
+            
+            if (!modelInput.contains(e.target) && !refreshButton.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // 监听模型输入框点击事件
+        document.getElementById('model').addEventListener('click', function() {
+            if (allModels.length > 0) {
+                filterModels(this.value);
+            }
+        });
+
+        // 保存配置
         function saveConfig() {
             const modelType = document.getElementById('modelType').value;
             const currentModel = document.getElementById('model').value;
             const currentApiKey = document.getElementById('apiKey').value;
+            const enableStreaming = document.getElementById('enableStreaming').checked;
             
             const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
             
-            // 更新当前配置
             config.modelType = modelType;
             config[`${modelType}_apiKey`] = currentApiKey;
             config[`${modelType}_lastModel`] = currentModel;
+            config.enableStreaming = enableStreaming;
             
             localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
-        }
-
-        async function sendMessage() {
-            const response = document.getElementById('response');
-            response.textContent = '正在请求中...';
-            
-            const modelType = document.getElementById('modelType').value;
-            const apiKey = document.getElementById('apiKey').value;
-            const model = document.getElementById('model').value;
-            const prompt = document.getElementById('prompt').value;
-            const enableStreaming = document.getElementById('enableStreaming').checked;
-
-            // 保存配置
-            saveConfig();
-            
-            if (enableStreaming) {
-                response.textContent = '';
-                try {
-                    const res = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'text/event-stream',
-                        },
-                        body: JSON.stringify({
-                            model_type: modelType,
-                            api_key: apiKey,
-                            model: model,
-                            prompt: prompt,
-                            enable_streaming: true
-                        })
-                    });
-
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder();
-                    
-                    while (true) {
-                        const {value, done} = await reader.read();
-                        if (done) break;
-                        
-                        const text = decoder.decode(value);
-                        const lines = text.split('\n');
-                        
-                        for (const line of lines) {
-                            if (line.startsWith('data: ')) {
-                                try {
-                                    const data = JSON.parse(line.slice(6));
-                                    response.textContent += data.chunk;
-                                } catch (e) {
-                                    console.error('解析响应失败:', e);
-                                }
-                            }
-                        }
-                    }
-                } catch (error) {
-                    response.textContent = '流式请求失败: ' + error.message;
-                }
-            } else {
-                try {
-                    const res = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            model_type: modelType,
-                            api_key: apiKey,
-                            model: model,
-                            prompt: prompt,
-                            enable_streaming: false
-                        })
-                    });
-                    
-                    const data = await res.json();
-                    if (data.success) {
-                        response.textContent = data.response;
-                    } else {
-                        response.textContent = '错误: ' + data.error;
-                    }
-                } catch (error) {
-                    response.textContent = '请求失败: ' + error.message;
-                }
-            }
         }
 
         // 切换 API Key 显示/隐藏
         function toggleApiKeyVisibility() {
             const apiKeyInput = document.getElementById('apiKey');
-            const eyeIcon = document.getElementById('eyeIcon');
-            const eyeSlashIcon = document.getElementById('eyeSlashIcon');
-            
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                eyeIcon.classList.add('hidden');
-                eyeSlashIcon.classList.remove('hidden');
-            } else {
-                apiKeyInput.type = 'password';
-                eyeIcon.classList.remove('hidden');
-                eyeSlashIcon.classList.add('hidden');
-            }
+            apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
         }
 
-        // 添加获取 API Key 帮助链接更新函数
+        // 更新 API Key 帮助链接
         function updateApiKeyHelpLink() {
             const modelType = document.getElementById('modelType').value;
             const helpLink = document.getElementById('apiKeyHelp');
             
             const helpLinks = {
-                'gpt': 'https://platform.openai.com/api-keys',  // OpenAI 需要科学上网
+                'openai': 'https://platform.openai.com/api-keys',
                 'ernie': 'https://console.bce.baidu.com/qianfan/overview',
-                'qwen': 'https://bailian.console.aliyun.com/?apiKey=1',
-                'glm': 'https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys',
+                'dashscope': 'https://bailian.console.aliyun.com/?apiKey=1',
+                'zhipu': 'https://open.bigmodel.cn/usercenter/apikeys',
                 'minimax': 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
-                'ollama': '#'
+                'ollama': 'https://ollama.com',
+                'deepseek': 'https://platform.deepseek.com/',
+                'siliconflow': 'https://cloud.siliconflow.cn/i/gQhQNfpv'
             };
             
             helpLink.href = helpLinks[modelType];
-            helpLink.style.display = (modelType === 'ollama') ? 'none' : 'flex';
+            helpLink.style.display = (modelType === 'ollama') ? 'none' : 'inline-block';
+        }
+
+        // 简单的markdown解析
+        function parseMarkdown(text) {
+            // 处理加粗 **text**
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 处理标题 ### text
+            text = text.replace(/^### (.*?)$/gm, '<h3 class="text-xl font-bold my-3">$1</h3>');
+            text = text.replace(/^## (.*?)$/gm, '<h2 class="text-2xl font-bold my-3">$1</h2>');
+            text = text.replace(/^# (.*?)$/gm, '<h1 class="text-3xl font-bold my-4">$1</h1>');
+            
+            // 处理列表 - text
+            text = text.replace(/^- (.*?)$/gm, '<li class="ml-4">• $1</li>');
+            
+            // 处理分隔线 ---
+            text = text.replace(/^---$/gm, '<hr class="my-4 border-t border-slate-700">');
+            
+            // 处理段落
+            text = text.split('\n').map(line => {
+                if (!line.startsWith('<') && line.trim() !== '') {
+                    return `<p class="mb-1">${line}</p>`;
+                }
+                return line;
+            }).join('\n');
+            
+            return text;
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const messageList = document.getElementById('messageList');
+            const prompt = document.getElementById('prompt').value;
+            const modelType = document.getElementById('modelType').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const enableStreaming = document.getElementById('enableStreaming').checked;
+
+            if (!prompt) return;
+
+            // 保存配置
+            saveConfig();
+
+            // 收集上下文
+            let context = [];
+            // 如果是重新发起的对话，使用保存的上下文
+            if (window.reaskContext) {
+                context = window.reaskContext;
+                window.reaskContext = null;  // 使用后清除
+            } else {
+                // 正常收集上下文
+                const messages = messageList.children;
+                for (const message of messages) {
+                    if (message.querySelector('.bg-blue-600')) {  // 用户消息
+                        context.push({
+                            role: 'user',
+                            content: message.querySelector('p').textContent
+                        });
+                    } else if (message.querySelector('.bg-purple-600')) {  // AI 消息
+                        const responseElement = message.querySelector('.text-slate-200.whitespace-pre-wrap');
+                        if (responseElement && responseElement.textContent && responseElement.textContent !== '...') {
+                            context.push({
+                                role: 'assistant',
+                                content: responseElement.textContent
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 添加用户消息
+            const userMessage = document.createElement('div');
+            userMessage.className = 'flex items-start space-x-3 mb-4';
+            userMessage.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
+                <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
+                    <p class="dark:text-slate-200 text-slate-700">${prompt}</p>
+                </div>
+            `;
+            messageList.appendChild(userMessage);
+
+            // 添加 AI 回复容器
+            const aiMessage = addAIMessage(prompt);
+            messageList.appendChild(aiMessage);
+            messageList.scrollTop = messageList.scrollHeight;
+
+            // 清空输入框
+            document.getElementById('prompt').value = '';
+
+            // 发送请求
+            try {
+                if (enableStreaming) {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model_type: modelType,
+                            api_key: apiKey,
+                            model: model,
+                            prompt: prompt,
+                            enable_streaming: true,
+                            include_reasoning: true,
+                            context: context
+                        })
+                    });
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    const responseElement = aiMessage.querySelector('pre');
+                    const reasoningElement = aiMessage.querySelector('div[id^="ai-reasoning"]');
+                    responseElement.textContent = '';
+                    window.currentResponse = '';  // 清除缓存
+
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) break;
+
+                        const text = decoder.decode(value);
+                        const lines = text.split('\n');
+
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(6));
+                                    
+                                    // 处理不同类型的消息
+                                    if (data.type === 'reasoning') {
+                                        // 如果还没有思考容器,创建一个
+                                        if (!reasoningElement.querySelector('.reasoning-content')) {
+                                            reasoningElement.innerHTML = `
+                                                <div class="text-slate-400">
+                                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
+                                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                        </svg>
+                                                        思考过程
+                                                    </div>
+                                                    <div class="pl-5 mt-2">
+                                                        <pre class="reasoning-content whitespace-pre-wrap text-slate-400"></pre>
+                                                    </div>
+                                                </div>`;
+                                        }
+                                        
+                                        // 添加内容
+                                        const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                        const text = data.content;
+                                        if (text.includes('\n')) {
+                                            const lines = text.split('\n');
+                                            lines.forEach((line, index) => {
+                                                if (line) reasoningContent.appendChild(document.createTextNode(line));
+                                                if (index < lines.length - 1) reasoningContent.appendChild(document.createElement('br'));
+                                            });
+                                        } else {
+                                            reasoningContent.appendChild(document.createTextNode(text));
+                                        }
+                                    } else if (data.type === 'content') {
+                                        // 如果是<think>且没有思考容器,创建一个
+                                        if (data.content === '<think>' && !reasoningElement.querySelector('.reasoning-content')) {
+                                            reasoningElement.innerHTML = `
+                                                <div class="text-slate-400">
+                                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
+                                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                        </svg>
+                                                        思考过程
+                                                    </div>
+                                                    <div class="pl-5 mt-2">
+                                                        <pre class="reasoning-content whitespace-pre-wrap text-slate-400"></pre>
+                                                    </div>
+                                                </div>`;
+                                            window.isThinking = true;
+                                        }
+                                        // 如果是</think>,收起思考过程
+                                        else if (data.content === '</think>') {
+                                            const reasoningContent = reasoningElement.querySelector('.pl-5.mt-2');
+                                            const arrow = reasoningElement.querySelector('svg');
+                                            if (reasoningContent && !reasoningContent.classList.contains('hidden')) {
+                                                reasoningContent.classList.add('hidden');
+                                                arrow.style.transform = 'rotate(0deg)';
+                                            }
+                                            window.isThinking = false;
+                                        }
+                                        // 如果在思考过程中,内容添加到思考过程中
+                                        else if (window.isThinking && reasoningElement.querySelector('.reasoning-content')) {
+                                            const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                            const text = data.content;
+                                            if (text.includes('\n')) {
+                                                const lines = text.split('\n');
+                                                lines.forEach((line, index) => {
+                                                    if (line) reasoningContent.appendChild(document.createTextNode(line));
+                                                    if (index < lines.length - 1) reasoningContent.appendChild(document.createElement('br'));
+                                                });
+                                            } else {
+                                                reasoningContent.appendChild(document.createTextNode(text));
+                                            }
+                                        }
+                                        // 其他情况,显示在响应区域
+                                        else {
+                                            // 直接添加内容,不做markdown解析
+                                            if (window.currentResponse === undefined) {
+                                                window.currentResponse = '';
+                                            }
+                                            // 收到内容时就直接将连续换行符替换为单个换行符
+                                            const content = data.content.replace(/\n\n/g, '\n');
+                                            window.currentResponse += content;
+                                            
+                                            // 保存原始内容
+                                            responseElement.dataset.originalContent = window.currentResponse;
+                                            
+                                            // 尝试解析整个内容的markdown
+                                            try {
+                                                responseElement.innerHTML = parseMarkdown(window.currentResponse);
+                                            } catch (e) {
+                                                // 如果解析失败,至少显示原始内容
+                                                responseElement.textContent = window.currentResponse;
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('解析响应失败:', e);
+                                }
+                            }
+                        }
+                        messageList.scrollTop = messageList.scrollHeight;
+                    }
+                } else {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model_type: modelType,
+                            api_key: apiKey,
+                            model: model,
+                            prompt: prompt,
+                            enable_streaming: false,
+                            include_reasoning: true,
+                            context: context
+                        })
+                    });
+
+                    const data = await response.json();
+                    const responseElement = aiMessage.querySelector('pre');
+                    const reasoningElement = aiMessage.querySelector('div[id^="ai-reasoning"]');
+                    
+                    if (data.success) {
+                        responseElement.textContent = data.response;
+                        if (data.reasoning) {
+                            responseElement.innerHTML = parseMarkdown(data.response);
+                            reasoningElement.innerHTML = `
+                                <div class="text-slate-400">
+                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
+                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(0deg)">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                        思考过程
+                                    </div>
+                                    <div class="pl-5 mt-2 hidden">
+                                        <pre class="whitespace-pre-wrap">${data.reasoning}</pre>
+                                    </div>
+                                </div>`;
+                        } else {
+                            reasoningElement.remove();
+                        }
+                    } else {
+                        responseElement.textContent = '错误: ' + data.error;
+                        responseElement.classList.add('text-red-500');
+                        reasoningElement.remove();
+                    }
+                }
+            } catch (error) {
+                const responseElement = aiMessage.querySelector('pre');
+                responseElement.textContent = '请求失败: ' + error.message;
+                responseElement.classList.add('text-red-500');
+            }
+
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        // 监听回车键发送消息
+        document.getElementById('prompt').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 处理 API Key 变化
+        function handleApiKeyChange() {
+            const modelType = document.getElementById('modelType').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            // 保存到本地存储
+            const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            config[`${modelType}_apiKey`] = apiKey;
+            localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+            
+            // 刷新模型列表
+            if (modelType === 'ollama' || ['openai', 'dashscope', 'deepseek', 'siliconflow'].includes(modelType)) {
+                refreshModels();
+            }
+        }
+
+        // 添加折叠/展开功能
+        function toggleReasoning(element) {
+            const content = element.nextElementSibling;
+            const arrow = element.querySelector('svg');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                arrow.style.transform = 'rotate(90deg)';
+            } else {
+                content.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // 重新发起对话
+        function reaskQuestion(button) {
+            const aiMessage = button.closest('.flex.items-start');
+            const userMessage = aiMessage.previousElementSibling;
+            const prompt = userMessage.querySelector('p').textContent;
+            
+            // 收集之前的所有对话内容
+            const messageList = document.getElementById('messageList');
+            const context = [];
+            const messages = messageList.children;
+            
+            // 遍历到当前消息为止的所有消息
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                // 如果到达当前用户消息，就停止
+                if (message === userMessage) {
+                    break;
+                }
+                
+                if (message.querySelector('.bg-blue-600')) {  // 用户消息
+                    context.push({
+                        role: 'user',
+                        content: message.querySelector('p').textContent
+                    });
+                } else if (message.querySelector('.bg-purple-600')) {  // AI 消息
+                    const responseElement = message.querySelector('.text-slate-200.whitespace-pre-wrap');
+                    if (responseElement && responseElement.textContent && responseElement.textContent !== '...') {
+                        context.push({
+                            role: 'assistant',
+                            content: responseElement.textContent
+                        });
+                    }
+                }
+            }
+            
+            // 设置输入框内容
+            document.getElementById('prompt').value = prompt;
+            
+            // 移除当前的 AI 回复和用户消息
+            aiMessage.remove();
+            userMessage.remove();
+            
+            // 保存上下文到全局变量，供sendMessage使用
+            window.reaskContext = context;
+            
+            sendMessage();
+        }
+        
+        // 清空全部对话
+        function clearAllMessages() {
+            if (confirm('确定要清空全部对话吗？')) {
+                document.getElementById('messageList').innerHTML = '';
+            }
+        }
+
+        // 复制响应内容
+        function copyResponse(button) {
+            const aiMessage = button.closest('.flex.items-start');
+            const responseElement = aiMessage.querySelector('pre');
+            
+            // 获取原始内容
+            const originalContent = window.currentResponse || responseElement.textContent;
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(originalContent).then(() => {
+                // 显示复制成功提示
+                const originalTitle = button.title;
+                button.title = '复制成功!';
+                setTimeout(() => {
+                    button.title = originalTitle;
+                }, 1000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                button.title = '复制失败';
+            });
+        }
+
+        // 使用提示词并直接发送
+        function usePromptAndSend(button) {
+            document.getElementById('prompt').value = button.textContent.trim();
+            // 隐藏建议框
+            document.getElementById('suggestionBox').style.display = 'none';
+            // 直接发送消息
+            sendMessage();
+        }
+
+        // 修改添加AI消息的部分
+        function addAIMessage(message) {
+            const modelType = document.getElementById('modelType').value;
+            const model = document.getElementById('model').value;
+            const modelInfo = `${modelType.toUpperCase()} / ${model}`;
+            
+            const aiMessage = document.createElement('div');
+            aiMessage.className = 'flex items-start space-x-3 mb-4';
+            aiMessage.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 text-white">AI</div>
+                <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
+                    <div class="text-xs dark:text-slate-400 text-slate-500 mb-2">${modelInfo}</div>
+                    <div class="dark:text-slate-400 text-slate-500 text-sm mb-2" id="ai-reasoning-${Date.now()}"></div>
+                    <pre class="dark:text-slate-200 text-slate-700 whitespace-pre-wrap" id="ai-response-${Date.now()}">...</pre>
+                    <div class="flex justify-end space-x-2 mt-2 dark:text-slate-400 text-slate-500">
+                        <button onclick="copyResponse(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="复制内容">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <button onclick="reaskQuestion(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="重新发起对话">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                        <button onclick="deleteMessage(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="删除这一轮对话">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            return aiMessage;
+        }
+
+        // 删除当前对话轮次
+        function deleteMessage(button) {
+            const aiMessage = button.closest('.flex.items-start');
+            const userMessage = aiMessage.previousElementSibling;
+            if (userMessage && userMessage.querySelector('.bg-blue-600')) {
+                userMessage.remove();
+            }
+            aiMessage.remove();
+        }
+
+        // 添加主题切换函数
+        function toggleTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeButtons(theme);
+            
+            // 保存主题设置
+            const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            config.theme = theme;
+            localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+        }
+
+        // 更新主题按钮状态
+        function updateThemeButtons(activeTheme) {
+            const darkButton = document.querySelector('.dark-toggle');
+            const lightButton = document.querySelector('.light-toggle');
+            
+            if (activeTheme === 'dark') {
+                darkButton.classList.add('bg-blue-600', 'text-slate-50');
+                darkButton.classList.remove('dark:text-slate-300', 'text-slate-500');
+                lightButton.classList.remove('bg-blue-600', 'text-slate-50');
+                lightButton.classList.add('dark:text-slate-300', 'text-slate-500');
+            } else {
+                lightButton.classList.add('bg-blue-600', 'text-slate-50');
+                lightButton.classList.remove('dark:text-slate-300', 'text-slate-500');
+                darkButton.classList.remove('bg-blue-600', 'text-slate-50');
+                darkButton.classList.add('dark:text-slate-300', 'text-slate-500');
+            }
         }
     </script>
 </body>
