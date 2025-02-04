@@ -91,6 +91,12 @@
             option {
                 @apply dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900;
             }
+            .reasoning-content {
+                @apply overflow-hidden transition-all duration-300 ease-in-out;
+            }
+            .reasoning-arrow {
+                @apply transform transition-transform duration-300 ease-in-out;
+            }
         }
     </style>
 </head>
@@ -352,7 +358,6 @@
             const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
             if (savedConfig.modelType) {
                 document.getElementById('modelType').value = savedConfig.modelType;
-                handleModelTypeChange();
             }
             if (savedConfig.apiKey) {
                 document.getElementById('apiKey').value = savedConfig.apiKey;
@@ -366,6 +371,12 @@
             if (savedConfig.theme) {
                 toggleTheme(savedConfig.theme);
             }
+
+            // 确保在页面加载时更新 API Key 帮助链接
+            updateApiKeyHelpLink();
+            
+            // 初始化后刷新模型列表
+            handleModelTypeChange();
         };
 
         // 显示欢迎模态框
@@ -629,7 +640,7 @@
 
         // 更新 API Key 帮助链接
         function updateApiKeyHelpLink() {
-            const modelType = document.getElementById('modelType').value;
+            const modelType = document.getElementById('modelType').value || 'siliconflow';  // 添加默认值
             const helpLink = document.getElementById('apiKeyHelp');
             
             const helpLinks = {
@@ -643,7 +654,7 @@
                 'siliconflow': 'https://cloud.siliconflow.cn/i/gQhQNfpv'
             };
             
-            helpLink.href = helpLinks[modelType];
+            helpLink.href = helpLinks[modelType] || helpLinks['siliconflow'];  // 添加默认值
             helpLink.style.display = (modelType === 'ollama') ? 'none' : 'inline-block';
         }
 
@@ -733,7 +744,6 @@
             // 添加 AI 回复容器
             const aiMessage = addAIMessage(prompt);
             messageList.appendChild(aiMessage);
-            messageList.scrollTop = messageList.scrollHeight;
 
             // 清空输入框
             document.getElementById('prompt').value = '';
@@ -782,14 +792,14 @@
                                         if (!reasoningElement.querySelector('.reasoning-content')) {
                                             reasoningElement.innerHTML = `
                                                 <div class="text-slate-400">
-                                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
-                                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
+                                                    <div class="flex items-center cursor-pointer hover:text-slate-300 transition-colors duration-200" onclick="toggleReasoning(this)">
+                                                        <svg class="w-4 h-4 mr-1 reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                                         </svg>
                                                         思考过程
                                                     </div>
-                                                    <div class="pl-5 mt-2">
-                                                        <pre class="reasoning-content whitespace-pre-wrap text-slate-400"></pre>
+                                                    <div class="pl-5 mt-2 reasoning-content">
+                                                        <pre class="whitespace-pre-wrap text-slate-400"></pre>
                                                     </div>
                                                 </div>`;
                                         }
@@ -811,24 +821,24 @@
                                         if (data.content === '<think>' && !reasoningElement.querySelector('.reasoning-content')) {
                                             reasoningElement.innerHTML = `
                                                 <div class="text-slate-400">
-                                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
-                                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
+                                                    <div class="flex items-center cursor-pointer hover:text-slate-300 transition-colors duration-200" onclick="toggleReasoning(this)">
+                                                        <svg class="w-4 h-4 mr-1 reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(90deg)">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                                         </svg>
                                                         思考过程
                                                     </div>
-                                                    <div class="pl-5 mt-2">
-                                                        <pre class="reasoning-content whitespace-pre-wrap text-slate-400"></pre>
+                                                    <div class="pl-5 mt-2 reasoning-content">
+                                                        <pre class="whitespace-pre-wrap text-slate-400"></pre>
                                                     </div>
                                                 </div>`;
                                             window.isThinking = true;
                                         }
                                         // 如果是</think>,收起思考过程
                                         else if (data.content === '</think>') {
-                                            const reasoningContent = reasoningElement.querySelector('.pl-5.mt-2');
-                                            const arrow = reasoningElement.querySelector('svg');
-                                            if (reasoningContent && !reasoningContent.classList.contains('hidden')) {
-                                                reasoningContent.classList.add('hidden');
+                                            const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                            const arrow = reasoningElement.querySelector('.reasoning-arrow');
+                                            if (reasoningContent && !reasoningContent.style.height) {
+                                                reasoningContent.style.height = '0';
                                                 arrow.style.transform = 'rotate(0deg)';
                                             }
                                             window.isThinking = false;
@@ -874,7 +884,6 @@
                                 }
                             }
                         }
-                        messageList.scrollTop = messageList.scrollHeight;
                     }
                 } else {
                     const response = await fetch('/api/chat', {
@@ -903,13 +912,13 @@
                             responseElement.innerHTML = parseMarkdown(data.response);
                             reasoningElement.innerHTML = `
                                 <div class="text-slate-400">
-                                    <div class="flex items-center cursor-pointer" onclick="toggleReasoning(this)">
-                                        <svg class="w-4 h-4 mr-1 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(0deg)">
+                                    <div class="flex items-center cursor-pointer hover:text-slate-300 transition-colors duration-200" onclick="toggleReasoning(this)">
+                                        <svg class="w-4 h-4 mr-1 reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: rotate(0deg)">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                         </svg>
                                         思考过程
                                     </div>
-                                    <div class="pl-5 mt-2 hidden">
+                                    <div class="pl-5 mt-2 reasoning-content" style="height: 0">
                                         <pre class="whitespace-pre-wrap">${data.reasoning}</pre>
                                     </div>
                                 </div>`;
@@ -927,8 +936,6 @@
                 responseElement.textContent = '请求失败: ' + error.message;
                 responseElement.classList.add('text-red-500');
             }
-
-            messageList.scrollTop = messageList.scrollHeight;
         }
 
         // 监听回车键发送消息
@@ -955,16 +962,16 @@
             }
         }
 
-        // 添加折叠/展开功能
+        // 修改折叠/展开功能
         function toggleReasoning(element) {
             const content = element.nextElementSibling;
-            const arrow = element.querySelector('svg');
+            const arrow = element.querySelector('.reasoning-arrow');
             
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
+            if (content.style.height === '0px' || !content.style.height) {
+                content.style.height = content.scrollHeight + 'px';
                 arrow.style.transform = 'rotate(90deg)';
             } else {
-                content.classList.add('hidden');
+                content.style.height = '0';
                 arrow.style.transform = 'rotate(0deg)';
             }
         }

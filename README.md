@@ -615,3 +615,28 @@ Run the program and enter API Key based on the prompt.
       timeout=180  # 3 minutes timeout
   )
   ```
+```
+
+一个轻量级优雅的统一 AI 接口。
+
+## 安装
+
+```bash
+pip install ai-palette
+```
+
+## 使用方法
+
+启动服务器有两种方式：
+
+1. 使用 Python 模块方式（推荐）：
+```bash
+python -m ai_palette.app
+```
+
+2. 使用命令行工具（需要确保 Python Scripts 目录在系统 PATH 中）：
+```bash
+ai-palette-server
+```
+
+服务器启动后，访问 http://127.0.0.1:18000 即可使用。
