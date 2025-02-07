@@ -1,6 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Flask, render_template, request, jsonify, Response, send_from_directory
 from ai_palette import AIChat, Message
-import os
 import json
 import requests
 
@@ -49,7 +51,7 @@ def get_models():
         if model_provider in ['openai', 'dashscope', 'deepseek', 'siliconflow']:
             base_urls = {
                 'openai': 'https://api.openai.com/v1/models',
-                'dashscope': 'https://dashscope.aliyuncs.com/api/v1/models',
+                'dashscope': 'https://dashscope.aliyuncs.com/compatible-mode/v1/models',
                 'deepseek': 'https://api.deepseek.com/v1/models',
                 'siliconflow': 'https://api.siliconflow.cn/v1/models'
             }
@@ -64,7 +66,7 @@ def get_models():
                     if model_provider == 'openai':
                         models = [model['id'] for model in data.get('data', [])]
                     elif model_provider == 'dashscope':
-                        models = [model['model'] for model in data.get('models', [])]
+                        models = [model['id'] for model in data.get('data', [])]
                     elif model_provider == 'deepseek':
                         models = [model['id'] for model in data.get('data', [])]
                     elif model_provider == 'siliconflow':
@@ -135,12 +137,14 @@ def chat():
                             if hasattr(chat, 'get_last_reasoning_content'):
                                 reasoning = chat.get_last_reasoning_content()
                                 if reasoning:
+                                    print(f"推理过程: {reasoning}")
                                     yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
                         except Exception as e:
                             print(f"获取推理过程失败: {e}")
                         
                         # 发送实际内容
                         yield f"data: {json.dumps({'type': 'content', 'content': chunk})}\n\n"
+                        print(f"实际内容: {chunk}")
             return Response(generate(), mimetype='text/event-stream')
         else:
             response = chat.ask(prompt)

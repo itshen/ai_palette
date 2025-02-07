@@ -337,36 +337,55 @@ class AIChat:
                 logger.error(error_msg)
                 raise ValueError(error_msg)
             
-            if "choices" not in response_json:
-                error_msg = "响应缺少 'choices' 字段"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            
-            if not response_json["choices"]:
-                error_msg = "'choices' 数组为空"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            
-            if self.provider == APIProvider.MINIMAX:
-                return response_json["choices"][0]["message"]["content"]
-            elif self.provider == APIProvider.DASHSCOPE:
+            # 根据不同的API提供商处理响应
+            if self.provider == APIProvider.DASHSCOPE:
+                if "output" not in response_json:
+                    raise ValueError("DASHSCOPE响应缺少 'output' 字段")
+                if "choices" not in response_json["output"]:
+                    raise ValueError("DASHSCOPE响应缺少 'output.choices' 字段")
+                if not response_json["output"]["choices"]:
+                    raise ValueError("DASHSCOPE 'output.choices' 数组为空")
                 return response_json["output"]["choices"][0]["message"]["content"]
+            
+            elif self.provider == APIProvider.OLLAMA:
+                if "message" not in response_json:
+                    raise ValueError("OLLAMA响应缺少 'message' 字段")
+                message = response_json["message"]
+                if not isinstance(message, dict):
+                    raise ValueError(f"OLLAMA响应message格式错误: {message}")
+                content = message.get("content")
+                if content is None:
+                    raise ValueError("OLLAMA响应缺少content字段")
+                return content
+            
+            elif self.provider == APIProvider.MINIMAX:
+                if "choices" not in response_json:
+                    raise ValueError("MINIMAX响应缺少 'choices' 字段")
+                if not response_json["choices"]:
+                    raise ValueError("MINIMAX 'choices' 数组为空")
+                return response_json["choices"][0]["message"]["content"]
+            
             elif self.provider in [APIProvider.DEEPSEEK, APIProvider.SILICONFLOW]:
-                # 对于 Deepseek 和 Siliconflow，我们返回 content，但也记录 reasoning_content
+                if "choices" not in response_json:
+                    raise ValueError("响应缺少 'choices' 字段")
+                if not response_json["choices"]:
+                    raise ValueError("'choices' 数组为空")
+                
                 message = response_json["choices"][0]["message"]
                 if not isinstance(message, dict):
-                    error_msg = f"Deepseek或Siliconflow响应message格式错误: {message}"
-                    logger.error(error_msg)
-                    raise ValueError(error_msg)
+                    raise ValueError(f"响应message格式错误: {message}")
                 
                 self._last_reasoning_content = message.get("reasoning_content", "")
                 content = message.get("content")
                 if content is None:
-                    error_msg = "Deepseek或Siliconflow响应缺少content字段"
-                    logger.error(error_msg)
-                    raise ValueError(error_msg)
+                    raise ValueError("响应缺少content字段")
                 return content
             
+            # 默认处理方式（OpenAI格式）
+            if "choices" not in response_json:
+                raise ValueError("响应缺少 'choices' 字段")
+            if not response_json["choices"]:
+                raise ValueError("'choices' 数组为空")
             return response_json["choices"][0]["message"]["content"]
             
         except requests.exceptions.Timeout:
@@ -401,22 +420,32 @@ class AIChat:
                     if line.startswith('data: '):
                         if line.strip() == 'data: [DONE]':
                             break
-                        json_data = json.loads(line[6:])
-                        if "choices" in json_data and json_data["choices"]:
-                            delta = json_data["choices"][0].get("delta", {})
-                            content = delta.get("content", "")
-                            if content:
-                                yield {"type": "content", "content": content}
+                        try:
+                            json_data = json.loads(line[6:])
+                            if "output" in json_data and "choices" in json_data["output"] and json_data["output"]["choices"]:
+                                message = json_data["output"]["choices"][0].get("message", {})
+                                content = message.get("content", "")
+                                if content:
+                                    yield {"type": "content", "content": content}
+                        except (json.JSONDecodeError, KeyError, TypeError) as e:
+                            logger.error(f"处理DASHSCOPE响应时出错: {str(e)}\n响应内容: {line}")
+                            continue
+                            
         elif self.provider == APIProvider.OLLAMA:
             for line in response.iter_lines():
                 if line:
                     line = line.decode('utf-8')
-                    json_data = json.loads(line)
-                    if json_data.get("done", False):
-                        break
-                    content = json_data.get("message", {}).get("content", "")
-                    if content:
-                        yield {"type": "content", "content": content}
+                    try:
+                        json_data = json.loads(line)
+                        if json_data.get("done", False):
+                            break
+                        content = json_data.get("message", {}).get("content", "")
+                        if content:
+                            yield {"type": "content", "content": content}
+                    except (json.JSONDecodeError, KeyError, TypeError) as e:
+                        logger.error(f"处理OLLAMA响应时出错: {str(e)}\n响应内容: {line}")
+                        continue
+                        
         elif self.provider in [APIProvider.DEEPSEEK, APIProvider.SILICONFLOW]:
             for line in response.iter_lines():
                 if line:
@@ -436,19 +465,26 @@ class AIChat:
                                 if content:
                                     yield {"type": "content", "content": content}
                         except (json.JSONDecodeError, KeyError, TypeError) as e:
-                            logger.error(f"处理响应时出错: {str(e)}\n响应内容: {line}")
+                            logger.error(f"处理DEEPSEEK/SILICONFLOW响应时出错: {str(e)}\n响应内容: {line}")
                             continue
-        else:
+                            
+        else:  # OpenAI格式
             for line in response.iter_lines():
                 if line:
                     line = line.decode('utf-8')
                     if line.startswith('data: '):
                         if line.strip() == 'data: [DONE]':
                             break
-                        json_data = json.loads(line[6:])
-                        content = json_data["choices"][0]["delta"].get("content", "")
-                        if content:
-                            yield {"type": "content", "content": content}
+                        try:
+                            json_data = json.loads(line[6:])
+                            if "choices" in json_data and json_data["choices"]:
+                                delta = json_data["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield {"type": "content", "content": content}
+                        except (json.JSONDecodeError, KeyError, TypeError) as e:
+                            logger.error(f"处理响应时出错: {str(e)}\n响应内容: {line}")
+                            continue
 
     def get_last_reasoning_content(self) -> str:
         """获取最后一次 Deepseek 的推理内容

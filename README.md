@@ -78,13 +78,13 @@ from ai_palette import AIChat, Message
 
 # 方式1：直接传入配置
 chat = AIChat(
-    provider="openai",
+    provider="openai",  # 支持: openai, ernie, dashscope, zhipu, ollama, minimax, deepseek, siliconflow
     model="gpt-3.5-turbo",
     api_key="your-api-key"
 )
 
 # 方式2：从环境变量读取配置
-chat = AIChat(provider="openai")  # 会自动读取 OPENAI_API_KEY 和 OPENAI_MODEL
+chat = AIChat(provider="openai")  # 会自动读取对应的环境变量，如 OPENAI_API_KEY 和 OPENAI_MODEL
 
 # 基本对话
 response = chat.ask("你好，请介绍一下自己")
@@ -135,36 +135,42 @@ chat.clear_context(include_system_prompt=True)
 
 ```bash
 # OpenAI GPT 配置
-# https://platform.openai.com/api-keys
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
-OPENAI_MODEL=gpt-3.5-turbo
+GPT_API_KEY=sk-xxxxxxxxxxxxxxxx
+GPT_MODEL=gpt-4o-mini
 
 # 文心一言配置
-# https://cloud.baidu.com/product/wenxinworkshop
 ERNIE_API_KEY=xxxxxxxxxxxxxxxx
 ERNIE_API_SECRET=xxxxxxxxxxxxxxxx
 ERNIE_MODEL=ernie-bot-4
 
-# ChatGLM 配置
-# https://open.bigmodel.cn/usercenter/apikeys
-GLM_API_KEY=xxxxxxxxxxxxxxxx
-GLM_MODEL=glm-4
-
 # 通义千问配置
 # https://bailian.console.aliyun.com/?apiKey=1
-QWEN_API_KEY=xxxxxxxxxxxxxxxx
-QWEN_MODEL=qwen-max
+DASHSCOPE_API_KEY=xxxxxxxxxxxxxxxx
+DASHSCOPE_MODEL=qwen-max
 
-# MiniMax 配置
-# https://platform.minimax.com/user-center/basic-information/interface-key
+# ChatGLM配置
+# https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys
+ZHIPU_API_KEY=xxxxxxxxxxxxxxxx
+ZHIPU_MODEL=GLM-4-Plus
+
+# Ollama配置
+OLLAMA_API_URL=http://localhost:11434/api/chat
+OLLAMA_MODEL=first
+
+# MiniMax配置
+# https://platform.minimaxi.com/user-center/basic-information/interface-key
 MINIMAX_API_KEY=xxxxxxxxxxxxxxxx
-MINIMAX_API_SECRET=xxxxxxxxxxxxxxxx
+MINIMAX_API_SECRET=xxxxxxxxxxxxxxxx  # Group ID
 MINIMAX_MODEL=abab5.5-chat
 
-# Ollama 配置（本地运行无需 API KEY）
-# https://ollama.com/download
-OLLAMA_API_URL=http://localhost:11434/api/chat
-OLLAMA_MODEL=llama2
+# Deepseek配置
+# https://platform.deepseek.com/
+DEEPSEEK_API_KEY=xxxxxxxxxxxxxxxx
+DEEPSEEK_MODEL=deepseek-reasoner
+
+# Siliconflow配置
+SILICONFLOW_API_KEY=xxxxxxxxxxxxxxxx
+SILICONFLOW_MODEL=siliconflow-chat
 ```
 
 ## 🎯 高级用法
@@ -396,7 +402,7 @@ from ai_palette import AIChat, Message
 
 # Method 1: Direct configuration
 chat = AIChat(
-    provider="openai",
+    provider="openai",  # 支持: openai, ernie, dashscope, zhipu, ollama, minimax, deepseek, siliconflow
     model="gpt-3.5-turbo",
     api_key="your-api-key"
 )

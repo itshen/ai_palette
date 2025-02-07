@@ -62,9 +62,9 @@ def setup_api_key() -> None:
 
 def get_api_key() -> str:
     """获取 Deepseek API key"""
-    api_key = os.getenv('DEEPSEEK_API_KEY')
+    api_key = os.getenv('SILICONFLOW_API_KEY')
     if not api_key:
-        console.print("[red]错误: 未设置 DEEPSEEK_API_KEY 环境变量[/red]")
+        console.print("[red]错误: 未设置 SILICONFLOW_API_KEY 环境变量[/red]")
         console.print("请访问 https://platform.deepseek.com/api-keys 获取 API key")
         console.print("你可以：")
         console.print("1. 使用命令行参数: python test_deepseek.py --api-key YOUR_API_KEY [--save]")
@@ -81,8 +81,8 @@ def create_chat(streaming: bool = False, timeout: int = 120) -> AIChat:
         timeout: 请求超时时间（秒），默认 120 秒
     """
     return AIChat(
-        provider="deepseek",
-        model="deepseek-reasoner",
+        provider="siliconflow",
+        model="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
         api_key=get_api_key(),
         enable_streaming=streaming,
         timeout=timeout
@@ -120,7 +120,7 @@ def test_streaming_reasoning():
     console.rule("[bold blue]测试流式推理功能")
     chat = create_chat(streaming=True)
     
-    prompt = "解释一下量子纠缠现象"
+    prompt = "天空为什么是蓝色的？"
     console.print(f"\n[bold green]用户:[/bold green] {prompt}")
     
     # 创建一个自适应布局
