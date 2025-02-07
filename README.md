@@ -81,7 +81,7 @@ pip install ai_palette
 python -m ai_palette.app
 ```
 
-服务器启动后，访问 http://127.0.0.1:5000 即可使用。
+服务器启动后，访问 http://127.0.0.1:18000 即可使用。
 
 主要功能：
 - 支持所有已配置模型的在线对话
@@ -316,8 +316,6 @@ chat.add_context("很好，我们开始吧", role="assistant")
 chat.clear_context()  # 只清除普通对话
 chat.clear_context(include_system_prompt=True)  # 清除所有上下文
 ```
-
-<img src="ai_palette/static/image/web_demo.png" width="600" alt="AI Palette">
 
 ## 📄 许可证
 
