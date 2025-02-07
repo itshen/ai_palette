@@ -65,13 +65,34 @@
 - Gemma
 ……
 
+
+## 🚀 快速开始
+
 ## 📦 安装
 
 ```bash
-pip install -r requirements.txt
+pip install ai_palette
 ```
 
-## 🚀 快速开始
+### Web 应用
+
+启动服务器：
+```bash
+python -m ai_palette.app
+```
+
+服务器启动后，访问 http://127.0.0.1:5000 即可使用。
+
+主要功能：
+- 支持所有已配置模型的在线对话
+- 支持流式输出
+- 支持自定义系统提示词
+- 支持查看对话历史
+- 支持导出对话记录
+
+<img src="ai_palette/static/image/web_demo.png" width="600" alt="AI Palette">
+
+### Python API 使用
 
 ```python
 from ai_palette import AIChat, Message
@@ -98,7 +119,7 @@ print(response)
 # 流式输出
 chat = AIChat(provider="openai", enable_streaming=True)
 for chunk in chat.ask("讲一个故事"):
-    print(chunk, end="", flush=True)
+    print(chunk["content"], end="", flush=True)
 
 # 上下文对话
 messages = []
@@ -117,7 +138,7 @@ chat.add_context("你是一个专业的Python导师", role="system")
 
 # 添加对话历史
 chat.add_context("我想学习Python", role="user")
-chat.add_context("很好，Python是一个很好的选择。我们从基础开始吧。", role="assistant")
+chat.add_context("很好，我们开始吧", role="assistant")
 
 # 发送新的问题
 response = chat.ask("我应该从哪里开始？")
@@ -129,14 +150,15 @@ chat.clear_context()
 chat.clear_context(include_system_prompt=True)
 ```
 
+
 ## ⚙️ 环境变量配置
 
 创建 `.env` 文件，参考 `.env.example` 进行配置：
 
 ```bash
 # OpenAI GPT 配置
-GPT_API_KEY=sk-xxxxxxxxxxxxxxxx
-GPT_MODEL=gpt-4o-mini
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+OPENAI_MODEL=gpt-3.5-turbo
 
 # 文心一言配置
 ERNIE_API_KEY=xxxxxxxxxxxxxxxx
@@ -151,22 +173,22 @@ DASHSCOPE_MODEL=qwen-max
 # ChatGLM配置
 # https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys
 ZHIPU_API_KEY=xxxxxxxxxxxxxxxx
-ZHIPU_MODEL=GLM-4-Plus
+ZHIPU_MODEL=glm-4
 
 # Ollama配置
 OLLAMA_API_URL=http://localhost:11434/api/chat
-OLLAMA_MODEL=first
+OLLAMA_MODEL=llama2
 
 # MiniMax配置
 # https://platform.minimaxi.com/user-center/basic-information/interface-key
 MINIMAX_API_KEY=xxxxxxxxxxxxxxxx
-MINIMAX_API_SECRET=xxxxxxxxxxxxxxxx  # Group ID
+MINIMAX_API_SECRET=xxxxxxxxxxxxxxxx
 MINIMAX_MODEL=abab5.5-chat
 
 # Deepseek配置
 # https://platform.deepseek.com/
 DEEPSEEK_API_KEY=xxxxxxxxxxxxxxxx
-DEEPSEEK_MODEL=deepseek-reasoner
+DEEPSEEK_MODEL=deepseek-chat
 
 # Siliconflow配置
 SILICONFLOW_API_KEY=xxxxxxxxxxxxxxxx
@@ -185,7 +207,7 @@ from ai_palette import AIChat
 # 创建 Deepseek 实例
 chat = AIChat(
     provider="deepseek",
-    model="deepseek-reasoner",
+    model="deepseek-chat",
     enable_streaming=True  # 启用流式输出
 )
 
@@ -228,7 +250,7 @@ export DEEPSEEK_API_KEY="your-api-key"
   # 复杂问题使用更长的超时时间
   chat = AIChat(
       provider="deepseek",
-      model="deepseek-reasoner",
+      model="deepseek-chat",
       timeout=180  # 3分钟超时
   )
   ```
@@ -295,354 +317,11 @@ chat.clear_context()  # 只清除普通对话
 chat.clear_context(include_system_prompt=True)  # 清除所有上下文
 ```
 
-## 📄 Web 界面
-
-项目提供了一个简洁美观的 Web 界面（`app.py`），可以直接在浏览器中体验各种模型的对话能力：
-
-```bash
-# 运行 Web 服务
-python app.py
-```
-
-启动后访问 `http://localhost:5000` 即可使用。主要功能：
-- 支持所有已配置模型的在线对话
-- 支持流式输出
-- 支持自定义系统提示词
-- 支持查看对话历史
-- 支持导出对话记录
-
-
-<img src="static/image/web_demo.png" width="600" alt="AI Palette">
+<img src="ai_palette/static/image/web_demo.png" width="600" alt="AI Palette">
 
 ## 📄 许可证
 
 MIT 
 
 
-<img src="static/image/connect.jpg" width="400" alt="PI Palette">
-
----
-
-# AI Palette 🎨 [English]
-
-A lightweight and elegant unified AI interface that meets all needs with a single call.
-Supporting multiple mainstream AI models, switch between different AI services as freely as using a palette.
-It is great for AI IDEs such as Cursor to use as a context.
-
-## 🌟 Why Choose AI Palette?
-
-- 🔄 **Unified Interface**: One codebase fits multiple large models, no need to develop repeatedly
-- 🛠 **Reduce Costs**: Flexible switching between different models, optimizing usage costs
-- 🚀 **Quick Integration**: 5 minutes to complete integration, support streaming output
-- 🔌 **High Availability**: Built-in complete retry mechanism, ensuring service stability
-- 🎯 **Out-of-the-Box**: Mainstream models ready to use, interface uniform and standardized
-
-## ✨ Features
-
-- 🎨 Unified elegant interface design
-- 💎 Single file implementation, lightweight and easy to integrate
-- 🌊 Support streaming output
-- 🔄 Complete error handling and retry mechanism
-- 📝 Type hints and comprehensive documentation
-- ⚙️ Flexible configuration, supporting direct parameters and environment variables
-- 💬 Support contextual dialogue
-
-## 🎯 Supported Models
-
-### OpenAI
-- GPT-4 Turbo
-- GPT-3.5 Turbo
-
-### Baidu ERNIE
-- ERNIE Bot 4.0
-- ERNIE Bot 8K
-
-### Alibaba Qwen
-- Qwen Turbo
-- Qwen Plus
-- Qwen Max
-
-### Zhipu AI
-- GLM-4
-- GLM-4-32K
-
-### MiniMax
-- ABAB-6
-- ABAB-5.5
-
-### DeepSeek
-- DeepSeek Chat V3
-- DeepSeek Chat R1
-
-### SiliconFlow
-- DeepSeek-R1 / V3
-- Qwen 2.5 (72B/32B/14B/7B)
-- Meta Llama 3 (70B/8B)
-- Google Gemma 2 (27B/9B)
-- InternLM 2.5 (20B/7B)
-- Yi 1.5 (34B/9B/6B)
-- ChatGLM 4 (9B)
-
-### Ollama (Local Deployment)
-- Llama 2
-- Mistral
-- CodeLlama
-- Gemma
-
-## 📦 Installation
-
-```bash
-pip install -r requirements.txt
-```
-
-## 🚀 Quick Start
-
-```python
-from ai_palette import AIChat, Message
-
-# Method 1: Direct configuration
-chat = AIChat(
-    provider="openai",  # 支持: openai, ernie, dashscope, zhipu, ollama, minimax, deepseek, siliconflow
-    model="gpt-3.5-turbo",
-    api_key="your-api-key"
-)
-
-# Method 2: Read from environment variables
-chat = AIChat(provider="openai")  # Will automatically read OPENAI_API_KEY and OPENAI_MODEL
-
-# Basic conversation
-response = chat.ask("Hello, please introduce yourself")
-print(response)
-
-# Conversation with system prompt
-chat.add_context("You are a medical expert")
-response = chat.ask("What should I do for a headache?")
-print(response)
-
-# Streaming output
-chat = AIChat(provider="openai", enable_streaming=True)
-for chunk in chat.ask("Tell me a story"):
-    print(chunk, end="", flush=True)
-
-# Contextual dialogue
-messages = []
-messages.append(Message(role="user", content="Hi, my name is Tom"))
-response = chat.ask("Hi, my name is Tom", messages=messages)
-messages.append(Message(role="assistant", content=response))
-
-messages.append(Message(role="user", content="Do you remember my name?"))
-response = chat.ask("Do you remember my name?", messages=messages)
-
-# Context management
-chat = AIChat(provider="openai")
-
-# Add system prompt (only one can be set)
-chat.add_context("You are a Python tutor", role="system")
-
-# Add dialogue history
-chat.add_context("I want to learn Python", role="user")
-chat.add_context("Great, let's start with the basics", role="assistant")
-
-# Send new question
-response = chat.ask("Where should I start?")
-
-# Clear regular context, keep system prompt
-chat.clear_context()
-
-# Clear all context (including system prompt)
-chat.clear_context(include_system_prompt=True)
-```
-
-## ⚙️ Environment Variables
-
-Create a `.env` file, refer to `.env.example` for configuration:
-
-```bash
-# OpenAI GPT Configuration
-# https://platform.openai.com/api-keys
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
-OPENAI_MODEL=gpt-3.5-turbo
-
-# ERNIE Configuration
-# https://cloud.baidu.com/product/wenxinworkshop
-ERNIE_API_KEY=xxxxxxxxxxxxxxxx
-ERNIE_API_SECRET=xxxxxxxxxxxxxxxx
-ERNIE_MODEL=ernie-bot-4
-
-# ChatGLM Configuration
-# https://open.bigmodel.cn/usercenter/apikeys
-GLM_API_KEY=xxxxxxxxxxxxxxxx
-GLM_MODEL=glm-4
-
-# Qwen Configuration
-# https://bailian.console.aliyun.com/?apiKey=1
-QWEN_API_KEY=xxxxxxxxxxxxxxxx
-QWEN_MODEL=qwen-max
-
-# MiniMax Configuration
-# https://platform.minimax.com/user-center/basic-information/interface-key
-MINIMAX_API_KEY=xxxxxxxxxxxxxxxx
-MINIMAX_API_SECRET=xxxxxxxxxxxxxxxx
-MINIMAX_MODEL=abab5.5-chat
-
-# Ollama Configuration (No API KEY needed for local running)
-# https://ollama.com/download
-OLLAMA_API_URL=http://localhost:11434/api/chat
-OLLAMA_MODEL=llama2
-```
-
-## 🎯 Advanced Usage
-
-### Message History
-
-```python
-messages = [
-    Message(role="system", content="You are a helpful assistant"),
-    Message(role="user", content="The weather is nice today"),
-    Message(role="assistant", content="Yes, it's sunny")
-]
-response = chat.ask("Shall we go for a walk?", messages=messages)
-```
-
-### Error Retry
-
-Exponential backoff retry mechanism enabled by default:
-- Maximum retry attempts: 3
-- Base delay: 1 second
-- Maximum delay: 10 seconds
-
-Can be customized when creating an instance:
-
-```python
-chat = AIChat(
-    provider="openai",
-    retry_count=5,  # Maximum 5 retries
-    timeout=60     # Request timeout 60 seconds
-)
-```
-
-### Context Management [English]
-
-AI Palette provides flexible context management features:
-
-- **System Prompt**: Only one can be set, always at the beginning of the conversation
-- **Dialogue History**: Multiple user and assistant messages can be added
-- **Context Cleanup**: Supports selective clearing of regular dialogue or including system prompt
-
-```python
-# Add system prompt
-chat.add_context("You are a Python tutor", role="system")
-
-# Add dialogue history
-chat.add_context("I want to learn Python", role="user")
-chat.add_context("Great, let's start with the basics", role="assistant")
-
-# Clear context
-chat.clear_context()  # Only clear regular dialogue
-chat.clear_context(include_system_prompt=True)  # Clear all context
-```
-
-## 📄 Web Interface
-
-The project provides a clean and beautiful web interface (`app.py`) that allows you to experience various models' conversational capabilities directly in your browser:
-
-```bash
-# Run the web server
-python app.py
-```
-
-Visit `http://localhost:5000` after startup. Main features:
-- Support online conversation with all configured models
-- Support streaming output
-- Support custom system prompts
-- Support viewing conversation history
-- Support exporting conversation records
-
-<img src="static/image/web_demo.png" width="600" alt="AI Palette">
-
-## 📄 License
-
-MIT 
-
-### Deepseek Model Usage
-
-Deepseek model has unique reasoning ability, showing AI's thinking process:
-
-```python
-from ai_palette import AIChat
-
-# Create Deepseek instance
-chat = AIChat(
-    provider="deepseek",
-    model="deepseek-reasoner",
-    enable_streaming=True  # Enable streaming output
-)
-
-# Non-streaming request
-response = chat.ask("Explain quantum entanglement phenomenon")
-print("Answer:", response)
-print("Reasoning:", chat.get_last_reasoning_content())
-
-# Streaming request
-for chunk in chat.ask("Why does the moon always face the same side towards the earth?"):
-    if chunk["type"] == "reasoning":
-        print("\n[Reasoning]", chunk["content"], end="")
-    else:  # type == "content"
-        print("\n[Final Answer]", chunk["content"], end="")
-```
-
-#### Deepseek API Key Setting
-
-There are three ways to set Deepseek API Key:
-
-1. Command line argument:
-```bash
-python test_deepseek.py --api-key YOUR_API_KEY --save
-```
-
-2. Environment variable:
-```bash
-export DEEPSEEK_API_KEY="your-api-key"
-```
-
-3. Interactive input:
-Run the program and enter API Key based on the prompt.
-
-#### Deepseek Specific Features
-
-- Reasoning Process Display: Get AI's reasoning process through `get_last_reasoning_content()`
-- Streaming Output Differentiation: Support streaming output that simultaneously gets reasoning process and final answer
-- Timeout Control: Different timeout times can be set based on the complexity of the question
-  ```python
-  # Use longer timeout for complex questions
-  chat = AIChat(
-      provider="deepseek",
-      model="deepseek-reasoner",
-      timeout=180  # 3 minutes timeout
-  )
-  ```
-```
-
-一个轻量级优雅的统一 AI 接口。
-
-## 安装
-
-```bash
-pip install ai-palette
-```
-
-## 使用方法
-
-启动服务器有两种方式：
-
-1. 使用 Python 模块方式（推荐）：
-```bash
-python -m ai_palette.app
-```
-
-2. 使用命令行工具（需要确保 Python Scripts 目录在系统 PATH 中）：
-```bash
-ai-palette-server
-```
-
-服务器启动后，访问 http://127.0.0.1:18000 即可使用。
+<img src="ai_palette/static/image/connect.jpg" width="400" alt="AI Palette">
