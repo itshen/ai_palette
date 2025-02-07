@@ -700,6 +700,12 @@
 
             if (!prompt) return;
 
+            // 隐藏建议框
+            const suggestionBox = document.getElementById('suggestionBox');
+            if (suggestionBox) {
+                suggestionBox.remove();  // 完全移除建议框
+            }
+
             // 保存配置
             saveConfig();
 
@@ -940,8 +946,39 @@
 
         // 监听回车键发送消息
         document.getElementById('prompt').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            // 如果正在使用输入法（IME），不处理回车事件
+            if (e.isComposing || e.keyCode === 229) {
+                return;
+            }
+            
+            // 如果按下的是回车键，但同时按着 Shift 键，则允许换行
+            if (e.key === 'Enter' && e.shiftKey) {
+                return;
+            }
+            
+            // 如果按下的是回车键
+            if (e.key === 'Enter') {
+                // 阻止默认的换行行为
                 e.preventDefault();
+                
+                // 获取当前输入的内容
+                const content = this.value.trim();
+                
+                // 如果内容为空，或者内容只包含换行符，则不发送
+                if (!content || content.length === 0) {
+                    return;
+                }
+                
+                // 如果最后一次按键到现在的时间小于 500ms，则不发送
+                // 这可以防止用户在快速输入时意外触发发送
+                if (this.lastKeyTime && Date.now() - this.lastKeyTime < 500) {
+                    return;
+                }
+                
+                // 记录这次按键的时间
+                this.lastKeyTime = Date.now();
+                
+                // 发送消息
                 sendMessage();
             }
         });
