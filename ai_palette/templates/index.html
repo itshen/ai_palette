@@ -809,7 +809,7 @@
             userMessage.innerHTML = `
                 <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
                 <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
-                    <p class="dark:text-slate-200 text-slate-700">${displayContent}</p>
+                    <p class="dark:text-slate-200 text-slate-700" data-original-content="${escapeHtml(prompt)}">${displayContent}</p>
                 </div>
             `;
             // 保存用户消息到聊天记录
@@ -1111,7 +1111,8 @@
             const aiMessage = button.closest('.flex.items-start');
             const userMessage = aiMessage.previousElementSibling;
             const pElement = userMessage.querySelector('p');
-            const prompt = pElement.textContent.replace(/<br\s*\/?>/g, '\n');  // 转换回原始格式
+            // 使用原始内容，如果没有则回退到显示内容
+            const prompt = pElement.dataset.originalContent || pElement.innerHTML.replace(/<br\s*\/?>/g, '\n');
             
             // 收集之前的所有对话内容
             const messageList = document.getElementById('messageList');
@@ -1130,7 +1131,7 @@
                     const pElement = message.querySelector('p');
                     context.push({
                         role: 'user',
-                        content: pElement.textContent.replace(/<br\s*\/?>/g, '\n')  // 转换回原始格式
+                        content: pElement.dataset.originalContent || pElement.innerHTML.replace(/<br\s*\/?>/g, '\n')
                     });
                 } else if (message.querySelector('.bg-purple-600')) {  // AI 消息
                     const responseElement = message.querySelector('pre');
@@ -1151,6 +1152,12 @@
             // 移除当前的 AI 回复和用户消息
             aiMessage.remove();
             userMessage.remove();
+            
+            // 更新本地存储的聊天记录
+            const storedMessages = JSON.parse(localStorage.getItem('aiPaletteChatHistory') || '[]');
+            // 移除最后两条消息（当前的用户消息和AI回复）
+            storedMessages.splice(-2, 2);
+            localStorage.setItem('aiPaletteChatHistory', JSON.stringify(storedMessages));
             
             // 清除之前的推理内容
             window.currentReasoning = '';
@@ -1383,7 +1390,7 @@
                     userMessage.innerHTML = `
                         <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
                         <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
-                            <p class="dark:text-slate-200 text-slate-700">${displayContent}</p>
+                            <p class="dark:text-slate-200 text-slate-700" data-original-content="${escapeHtml(message.content)}">${displayContent}</p>
                         </div>
                     `;
                     messageList.appendChild(userMessage);
