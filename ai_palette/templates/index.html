@@ -335,6 +335,9 @@
                 localStorage.setItem('hasVisitedAIPalette', 'true');
             }
 
+            // 恢复聊天记录
+            restoreChatHistory();
+
             // 检测系统主题并设置初始状态
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
                 document.documentElement.classList.remove('dark');
@@ -658,8 +661,18 @@
             helpLink.style.display = (modelType === 'ollama') ? 'none' : 'inline-block';
         }
 
+        // 添加转义 HTML 的函数
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // 简单的markdown解析
         function parseMarkdown(text) {
+            if (!text) return '';
+            
             // 处理加粗 **text**
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             
@@ -671,14 +684,13 @@
             text = text.replace(/^## (.*?)$/gm, '<h2 class="text-2xl font-bold my-3">$1</h2>');
             text = text.replace(/^# (.*?)$/gm, '<h1 class="text-3xl font-bold my-4">$1</h1>');
             
-            
             // 处理列表 - text
             text = text.replace(/^- (.*?)$/gm, '<li class="ml-4">$1</li>');
             
             // 处理分隔线 ---
-            text = text.replace(/^---$/gm, '<hr class="my-4 border-t border-slate-700">');
+            text = text.replace(/^---$/gm, '<hr class="my-4 border-t dark:border-slate-700 border-slate-200">');
             
-            // 处理段落
+            // 处理换行，保持原有的换行
             text = text.split('\n').map(line => {
                 if (!line.startsWith('<') && line.trim() !== '') {
                     return `<p class="mb-1">${line}</p>`;
@@ -706,6 +718,11 @@
                 suggestionBox.remove();  // 完全移除建议框
             }
 
+            // 清除全局变量
+            window.currentResponse = '';
+            window.currentReasoning = '';
+            window.isThinking = false;
+
             // 保存配置
             saveConfig();
 
@@ -720,16 +737,17 @@
                 const messages = messageList.children;
                 for (const message of messages) {
                     if (message.querySelector('.bg-blue-600')) {  // 用户消息
+                        const pElement = message.querySelector('p');
                         context.push({
                             role: 'user',
-                            content: message.querySelector('p').textContent
+                            content: pElement.dataset.originalContent || pElement.textContent.replace(/<br\s*\/?>/g, '\n')
                         });
                     } else if (message.querySelector('.bg-purple-600')) {  // AI 消息
-                        const responseElement = message.querySelector('.text-slate-200.whitespace-pre-wrap');
+                        const responseElement = message.querySelector('pre');
                         if (responseElement && responseElement.textContent && responseElement.textContent !== '...') {
                             context.push({
                                 role: 'assistant',
-                                content: responseElement.textContent
+                                content: responseElement.dataset.originalContent || responseElement.textContent.replace(/<br\s*\/?>/g, '\n')
                             });
                         }
                     }
@@ -739,12 +757,22 @@
             // 添加用户消息
             const userMessage = document.createElement('div');
             userMessage.className = 'flex items-start space-x-3 mb-4';
+            // 将换行符转换为 <br/>
+            const displayContent = prompt.replace(/\n/g, '<br/>');
             userMessage.innerHTML = `
                 <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
                 <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
-                    <p class="dark:text-slate-200 text-slate-700">${prompt}</p>
+                    <p class="dark:text-slate-200 text-slate-700">${displayContent}</p>
                 </div>
             `;
+            // 保存用户消息到聊天记录
+            const messages = JSON.parse(localStorage.getItem('aiPaletteChatHistory') || '[]');
+            messages.push({
+                type: 'user',
+                content: prompt  // 保存原始内容，包含 \n
+            });
+            localStorage.setItem('aiPaletteChatHistory', JSON.stringify(messages));
+
             messageList.appendChild(userMessage);
 
             // 添加 AI 回复容器
@@ -782,7 +810,11 @@
 
                     while (true) {
                         const {value, done} = await reader.read();
-                        if (done) break;
+                        if (done) {
+                            // 在完成时保存聊天记录
+                            saveChatHistory();
+                            break;
+                        }
 
                         const text = decoder.decode(value);
                         const lines = text.split('\n');
@@ -804,24 +836,23 @@
                                                         </svg>
                                                         思考过程
                                                     </div>
-                                                    <div class="pl-5 mt-2 reasoning-content">
-                                                        <pre class="whitespace-pre-wrap text-slate-400"></pre>
+                                                    <div class="pl-5 mt-2 reasoning-content" style="height: auto; transition: height 0.3s">
+                                                        <div class="whitespace-pre-wrap text-slate-400"></div>
                                                     </div>
                                                 </div>`;
                                         }
                                         
                                         // 添加内容
                                         const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                        const reasoningDiv = reasoningContent.querySelector('div');
                                         const text = data.content;
-                                        if (text.includes('\n')) {
-                                            const lines = text.split('\n');
-                                            lines.forEach((line, index) => {
-                                                if (line) reasoningContent.appendChild(document.createTextNode(line));
-                                                if (index < lines.length - 1) reasoningContent.appendChild(document.createElement('br'));
-                                            });
-                                        } else {
-                                            reasoningContent.appendChild(document.createTextNode(text));
-                                        }
+                                        // 累积推理内容
+                                        if (!window.currentReasoning) window.currentReasoning = '';
+                                        window.currentReasoning += text;
+                                        // 保存原始内容
+                                        reasoningDiv.dataset.originalContent = window.currentReasoning;
+                                        // 应用 markdown 解析
+                                        reasoningDiv.innerHTML = parseMarkdown(window.currentReasoning);
                                     } else if (data.type === 'content') {
                                         // 如果是<think>且没有思考容器,创建一个
                                         if (data.content === '<think>' && !reasoningElement.querySelector('.reasoning-content')) {
@@ -833,8 +864,8 @@
                                                         </svg>
                                                         思考过程
                                                     </div>
-                                                    <div class="pl-5 mt-2 reasoning-content">
-                                                        <pre class="whitespace-pre-wrap text-slate-400"></pre>
+                                                    <div class="pl-5 mt-2 reasoning-content" style="height: auto; transition: height 0.3s">
+                                                        <div class="whitespace-pre-wrap text-slate-400"></div>
                                                     </div>
                                                 </div>`;
                                             window.isThinking = true;
@@ -842,26 +873,28 @@
                                         // 如果是</think>,收起思考过程
                                         else if (data.content === '</think>') {
                                             const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                            const reasoningDiv = reasoningContent.querySelector('div');
                                             const arrow = reasoningElement.querySelector('.reasoning-arrow');
                                             if (reasoningContent && !reasoningContent.style.height) {
-                                                reasoningContent.style.height = '0';
+                                                reasoningContent.style.height = reasoningContent.scrollHeight + 'px';
                                                 arrow.style.transform = 'rotate(0deg)';
+                                                // 设置一个延时，等过渡动画完成后设置为 auto
+                                                setTimeout(() => {
+                                                    reasoningContent.style.height = 'auto';
+                                                }, 300);
                                             }
                                             window.isThinking = false;
                                         }
                                         // 如果在思考过程中,内容添加到思考过程中
                                         else if (window.isThinking && reasoningElement.querySelector('.reasoning-content')) {
                                             const reasoningContent = reasoningElement.querySelector('.reasoning-content');
+                                            const reasoningDiv = reasoningContent.querySelector('div');
                                             const text = data.content;
-                                            if (text.includes('\n')) {
-                                                const lines = text.split('\n');
-                                                lines.forEach((line, index) => {
-                                                    if (line) reasoningContent.appendChild(document.createTextNode(line));
-                                                    if (index < lines.length - 1) reasoningContent.appendChild(document.createElement('br'));
-                                                });
-                                            } else {
-                                                reasoningContent.appendChild(document.createTextNode(text));
-                                            }
+                                            // 累积推理内容
+                                            if (!window.currentReasoning) window.currentReasoning = '';
+                                            window.currentReasoning += text;
+                                            // 应用 markdown 解析
+                                            reasoningDiv.innerHTML = parseMarkdown(window.currentReasoning);
                                         }
                                         // 其他情况,显示在响应区域
                                         else {
@@ -879,6 +912,8 @@
                                             // 尝试解析整个内容的markdown
                                             try {
                                                 responseElement.innerHTML = parseMarkdown(window.currentResponse);
+                                                // 保存原始内容
+                                                responseElement.dataset.originalContent = window.currentResponse;
                                             } catch (e) {
                                                 // 如果解析失败,至少显示原始内容
                                                 responseElement.textContent = window.currentResponse;
@@ -931,6 +966,8 @@
                         } else {
                             reasoningElement.remove();
                         }
+                        // 在成功时保存聊天记录
+                        saveChatHistory();
                     } else {
                         responseElement.textContent = '错误: ' + data.error;
                         responseElement.classList.add('text-red-500');
@@ -1004,20 +1041,33 @@
             const content = element.nextElementSibling;
             const arrow = element.querySelector('.reasoning-arrow');
             
-            if (content.style.height === '0px' || !content.style.height) {
+            if (content.style.height === '0px' || content.style.height === '0') {
                 content.style.height = content.scrollHeight + 'px';
                 arrow.style.transform = 'rotate(90deg)';
+                // 设置一个延时，等过渡动画完成后设置为 auto
+                setTimeout(() => {
+                    content.style.height = 'auto';
+                }, 300);
             } else {
+                // 先设置为具体高度，以便动画
+                content.style.height = content.scrollHeight + 'px';
+                // 强制重绘
+                content.offsetHeight;
+                // 然后设置为 0
                 content.style.height = '0';
                 arrow.style.transform = 'rotate(0deg)';
             }
+            
+            // 保存状态
+            saveChatHistory();
         }
 
-        // 重新发起对话
+        // 修改重新发起对话函数
         function reaskQuestion(button) {
             const aiMessage = button.closest('.flex.items-start');
             const userMessage = aiMessage.previousElementSibling;
-            const prompt = userMessage.querySelector('p').textContent;
+            const pElement = userMessage.querySelector('p');
+            const prompt = pElement.textContent.replace(/<br\s*\/?>/g, '\n');  // 转换回原始格式
             
             // 收集之前的所有对话内容
             const messageList = document.getElementById('messageList');
@@ -1033,16 +1083,19 @@
                 }
                 
                 if (message.querySelector('.bg-blue-600')) {  // 用户消息
+                    const pElement = message.querySelector('p');
                     context.push({
                         role: 'user',
-                        content: message.querySelector('p').textContent
+                        content: pElement.textContent.replace(/<br\s*\/?>/g, '\n')  // 转换回原始格式
                     });
                 } else if (message.querySelector('.bg-purple-600')) {  // AI 消息
-                    const responseElement = message.querySelector('.text-slate-200.whitespace-pre-wrap');
-                    if (responseElement && responseElement.textContent && responseElement.textContent !== '...') {
+                    const responseElement = message.querySelector('pre');
+                    // 使用 dataset.originalContent 获取原始内容，如果没有则使用 textContent
+                    const content = responseElement.dataset.originalContent || responseElement.textContent;
+                    if (content && content !== '...') {
                         context.push({
                             role: 'assistant',
-                            content: responseElement.textContent
+                            content: content
                         });
                     }
                 }
@@ -1055,6 +1108,9 @@
             aiMessage.remove();
             userMessage.remove();
             
+            // 清除之前的推理内容
+            window.currentReasoning = '';
+            
             // 保存上下文到全局变量，供sendMessage使用
             window.reaskContext = context;
             
@@ -1064,17 +1120,20 @@
         // 清空全部对话
         function clearAllMessages() {
             if (confirm('确定要清空全部对话吗？')) {
-                document.getElementById('messageList').innerHTML = '';
+                // 清空本地存储中的聊天记录
+                localStorage.removeItem('aiPaletteChatHistory');
+                // 清空页面内容并显示推荐
+                restoreChatHistory();
             }
         }
 
-        // 复制响应内容
+        // 修改复制响应内容函数
         function copyResponse(button) {
             const aiMessage = button.closest('.flex.items-start');
             const responseElement = aiMessage.querySelector('pre');
             
-            // 获取原始内容
-            const originalContent = window.currentResponse || responseElement.textContent;
+            // 获取原始内容（markdown 格式）
+            const originalContent = responseElement.dataset.originalContent || responseElement.textContent;
             
             // 复制到剪贴板
             navigator.clipboard.writeText(originalContent).then(() => {
@@ -1143,6 +1202,15 @@
                 userMessage.remove();
             }
             aiMessage.remove();
+            
+            // 更新存储的聊天记录
+            saveChatHistory();
+            
+            // 如果没有消息了，显示推荐
+            const messageList = document.getElementById('messageList');
+            if (messageList.children.length === 0) {
+                restoreChatHistory();
+            }
         }
 
         // 添加主题切换函数
@@ -1175,6 +1243,155 @@
                 lightButton.classList.remove('dark:text-slate-300', 'text-slate-500');
                 darkButton.classList.remove('bg-blue-600', 'text-slate-50');
                 darkButton.classList.add('dark:text-slate-300', 'text-slate-500');
+            }
+        }
+
+        // 修改保存聊天记录函数
+        function saveChatHistory() {
+            const messageList = document.getElementById('messageList');
+            const messages = [];
+            
+            for (const message of messageList.children) {
+                if (message.id === 'suggestionBox') continue;
+                
+                if (message.querySelector('.bg-blue-600')) { // 用户消息
+                    const pElement = message.querySelector('p');
+                    // 将 <br/> 转换回 \n
+                    const content = pElement.innerHTML.replace(/<br\s*\/?>/g, '\n');
+                    messages.push({
+                        type: 'user',
+                        content: content
+                    });
+                } else if (message.querySelector('.bg-purple-600')) { // AI 消息
+                    const modelInfo = message.querySelector('.text-xs').textContent;
+                    const responseElement = message.querySelector('pre');
+                    const reasoningElement = message.querySelector('div[id^="ai-reasoning"]');
+                    
+                    const messageData = {
+                        type: 'ai',
+                        modelInfo: modelInfo,
+                        content: responseElement.dataset.originalContent || responseElement.textContent
+                    };
+
+                    // 如果有推理内容，也保存
+                    const reasoningContent = reasoningElement?.querySelector('.reasoning-content');
+                    if (reasoningContent) {
+                        const reasoningDiv = reasoningContent.querySelector('div');
+                        messageData.reasoning = reasoningDiv.dataset.originalContent || reasoningDiv.textContent;
+                        // 保存展开/折叠状态
+                        messageData.reasoningExpanded = reasoningContent.style.height !== '0px' && reasoningContent.style.height !== '0';
+                    }
+
+                    messages.push(messageData);
+                }
+            }
+            
+            localStorage.setItem('aiPaletteChatHistory', JSON.stringify(messages));
+        }
+
+        // 添加恢复聊天记录的函数
+        function restoreChatHistory() {
+            const messageList = document.getElementById('messageList');
+            const savedMessages = localStorage.getItem('aiPaletteChatHistory');
+            
+            if (!savedMessages) {
+                // 如果没有聊天记录，确保显示建议框
+                if (!document.getElementById('suggestionBox')) {
+                    messageList.innerHTML = `
+                        <div id="suggestionBox" class="mb-4">
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    帮我制定一份一周健康饮食计划
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    如何缓解工作压力和情绪
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    推荐一些室内植物养护小技巧
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    分享一些提高睡眠质量的方法
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    推荐几道简单美味的家常菜
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    如何整理和收纳小户型空间
+                                </button>
+                                <button onclick="usePromptAndSend(this)" class="rounded-lg dark:bg-slate-800 bg-white px-3 py-1.5 dark:hover:bg-blue-600 hover:bg-blue-50 dark:hover:text-slate-200 hover:text-blue-600 dark:text-slate-300 text-slate-600 dark:border-slate-700 border-slate-200 border">
+                                    分享一些省钱小妙招
+                                </button>
+                            </div>
+                        </div>`;
+                }
+                return;
+            }
+
+            const messages = JSON.parse(savedMessages);
+            messageList.innerHTML = ''; // 清空现有内容
+            
+            for (const message of messages) {
+                if (message.type === 'user') {
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'flex items-start space-x-3 mb-4';
+                    // 将原始内容中的 \n 转换为 <br/>
+                    const displayContent = message.content.replace(/\n/g, '<br/>');
+                    userMessage.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
+                        <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
+                            <p class="dark:text-slate-200 text-slate-700">${displayContent}</p>
+                        </div>
+                    `;
+                    messageList.appendChild(userMessage);
+                } else if (message.type === 'ai') {
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'flex items-start space-x-3 mb-4';
+                    
+                    let reasoningHtml = '';
+                    if (message.reasoning) {
+                        const arrowRotation = message.reasoningExpanded ? 'rotate(90deg)' : 'rotate(0deg)';
+                        const contentHeight = message.reasoningExpanded ? 'auto' : '0';
+                        reasoningHtml = `
+                            <div class="text-slate-400">
+                                <div class="flex items-center cursor-pointer hover:text-slate-300 transition-colors duration-200" onclick="toggleReasoning(this)">
+                                    <svg class="w-4 h-4 mr-1 reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: ${arrowRotation}">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                    思考过程
+                                </div>
+                                <div class="pl-5 mt-2 reasoning-content" style="height: ${contentHeight}; transition: height 0.3s">
+                                    <div class="whitespace-pre-wrap text-slate-400" data-original-content="${escapeHtml(message.reasoning)}">${parseMarkdown(message.reasoning)}</div>
+                                </div>
+                            </div>`;
+                    }
+
+                    aiMessage.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 text-white">AI</div>
+                        <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
+                            <div class="text-xs dark:text-slate-400 text-slate-500 mb-2">${message.modelInfo}</div>
+                            <div class="dark:text-slate-400 text-slate-500 text-sm mb-2" id="ai-reasoning-${Date.now()}">${reasoningHtml}</div>
+                            <pre class="dark:text-slate-200 text-slate-700 whitespace-pre-wrap" data-original-content="${escapeHtml(message.content)}">${parseMarkdown(message.content)}</pre>
+                            <div class="flex justify-end space-x-2 mt-2 dark:text-slate-400 text-slate-500">
+                                <button onclick="copyResponse(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="复制内容">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </button>
+                                <button onclick="reaskQuestion(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="重新发起对话">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                                <button onclick="deleteMessage(this)" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-100 rounded-lg" title="删除这一轮对话">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    messageList.appendChild(aiMessage);
+                }
             }
         }
     </script>
