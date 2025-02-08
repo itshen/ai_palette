@@ -151,7 +151,15 @@
                 @apply dark:text-slate-300 text-slate-700 whitespace-pre;
             }
             .drawer-open {
-                @apply pr-[600px];
+                @apply pr-[600px] transition-all duration-300 ease-in-out;
+            }
+            
+            input:checked + .toggle-label {
+                @apply dark:bg-blue-600 bg-blue-600;
+            }
+            
+            input:checked + .toggle-label .toggle-dot {
+                transform: translateX(1.5rem);
             }
         }
     </style>
@@ -294,9 +302,26 @@
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-3">
-                    <input type="checkbox" id="enableStreaming" onchange="handleStreamingChange()" class="rounded dark:border-slate-600 border-slate-300">
-                    <label for="enableStreaming" class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between dark:bg-slate-700/50 bg-slate-50 rounded-lg px-4 py-2">
+                        <label for="enableStreaming" class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
+                        <div class="relative inline-block w-12 h-6">
+                            <input type="checkbox" id="enableStreaming" onchange="handleStreamingChange()" class="hidden">
+                            <label for="enableStreaming" class="toggle-label block w-12 h-6 rounded-full dark:bg-slate-600 bg-slate-300 cursor-pointer relative transition-colors duration-300">
+                                <span class="toggle-dot absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out shadow-sm"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between dark:bg-slate-700/50 bg-slate-50 rounded-lg px-4 py-2">
+                        <label for="showCodeExamples" class="text-sm font-medium dark:text-slate-300 text-slate-600">显示调用代码示例</label>
+                        <div class="relative inline-block w-12 h-6">
+                            <input type="checkbox" id="showCodeExamples" onchange="toggleCodeDrawer()" class="hidden">
+                            <label for="showCodeExamples" class="toggle-label block w-12 h-6 rounded-full dark:bg-slate-600 bg-slate-300 cursor-pointer relative transition-colors duration-300">
+                                <span class="toggle-dot absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out shadow-sm"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -331,7 +356,7 @@
         <!-- 右侧对话界面 -->
         <div class="flex-1 flex flex-col relative transition-all duration-300" id="chatContainer">
             <!-- 代码示例抽屉 -->
-            <div id="codeDrawer" class="fixed right-0 top-0 h-full w-[600px] transform translate-x-full transition-transform duration-300 ease-in-out bg-white dark:bg-slate-800 shadow-xl border-l dark:border-slate-700 border-slate-200 flex flex-col">
+            <div id="codeDrawer" class="fixed right-0 top-0 h-full w-[600px] transform translate-x-full transition-all duration-300 ease-in-out bg-white dark:bg-slate-800 shadow-xl border-l dark:border-slate-700 border-slate-200 flex flex-col">
                 <div class="flex items-center justify-between p-4 border-b dark:border-slate-700 border-slate-200">
                     <h3 class="text-lg font-medium dark:text-slate-200 text-slate-900">代码示例</h3>
                     <button onclick="toggleCodeDrawer()" class="dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
@@ -1690,8 +1715,13 @@ for chunk in chat.ask("Your message here"):
         function toggleCodeDrawer() {
             const drawer = document.getElementById('codeDrawer');
             const chatContainer = document.getElementById('chatContainer');
+            const checkbox = document.getElementById('showCodeExamples');
+            
             drawer.classList.toggle('translate-x-full');
             chatContainer.classList.toggle('drawer-open');
+            
+            // 同步 checkbox 状态
+            checkbox.checked = !drawer.classList.contains('translate-x-full');
             
             // 触发窗口 resize 事件以更新布局
             window.dispatchEvent(new Event('resize'));
