@@ -250,6 +250,7 @@
                         <option value="dashscope">通义千问</option>
                         <option value="minimax">MiniMax</option>
                         <option value="ernie">百度文心</option>
+                        <option value="dual_chain">双链推理</option>
                     </select>
                 </div>
 
@@ -844,31 +845,58 @@ for chunk in chat.ask("Your message here"):
             const modelInput = document.getElementById('model');
             const modelDropdown = document.getElementById('modelDropdown');
             
-            try {
-                // 显示加载状态
-                modelInput.placeholder = '加载中...';
-                modelInput.disabled = true;
+            // 如果是双链推理，使用本地配置
+            if (modelType === 'dual_chain') {
+                // 从本地存储读取推理链列表
+                const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
                 
+                // 清空当前模型列表
+                allModels = [];
+                modelList.innerHTML = '';
+                
+                // 添加所有可用的推理链到下拉列表
+                Object.values(chains).forEach(chain => {
+                    allModels.push(chain.title);
+                    const option = document.createElement('div');
+                    option.className = 'px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer';
+                    option.textContent = chain.title;
+                    option.onclick = () => {
+                        modelInput.value = chain.title;
+                        modelDropdown.classList.add('hidden');
+                        
+                        // 保存选择
+                        const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                        config[`${modelType}_lastModel`] = chain.id;
+                        localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+                        
+                        // 更新代码示例
+                        updateCodeExamples();
+                    };
+                    modelList.appendChild(option);
+                });
+                
+                modelInput.placeholder = '选择推理链';
+                if (Object.keys(chains).length > 0) {
+                    modelDropdown.classList.remove('hidden');
+                } else {
+                    modelInput.placeholder = '暂无可用的推理链';
+                }
+                return;
+            }
+            
+            // 其他模型提供商的处理逻辑
+            try {
                 const response = await fetch(`/api/models?type=${modelType}&api_key=${apiKey}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    allModels = data.models || [];
-                    
-                    // 更新模型列表
+                    allModels = data.models;
                     modelList.innerHTML = '';
                     
-                    if (allModels.length === 0) {
-                        const noModels = document.createElement('div');
-                        noModels.className = 'px-4 py-2 dark:text-slate-400 text-slate-500 text-center';
-                        noModels.textContent = '没有可用的模型';
-                        modelList.appendChild(noModels);
-                        modelInput.placeholder = '未找到可用模型';
-                        modelDropdown.classList.add('hidden');
-                    } else {
+                    if (allModels.length > 0) {
                         allModels.forEach(model => {
                             const option = document.createElement('div');
-                            option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
+                            option.className = 'px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer';
                             option.textContent = model;
                             option.onclick = () => {
                                 modelInput.value = model;
@@ -886,22 +914,15 @@ for chunk in chat.ask("Your message here"):
                         });
                         
                         modelInput.placeholder = '选择或输入模型名称';
-                        // 显示下拉框
                         modelDropdown.classList.remove('hidden');
                     }
                 } else {
                     showError(data.error || '获取模型列表失败');
                     modelInput.placeholder = '获取模型失败';
-                    allModels = [];
-                    modelDropdown.classList.add('hidden');
                 }
             } catch (error) {
-                showError('获取模型列表失败: ' + error.message);
+                showError('网络错误，请稍后重试');
                 modelInput.placeholder = '获取模型失败';
-                allModels = [];
-                modelDropdown.classList.add('hidden');
-            } finally {
-                modelInput.disabled = false;
             }
         }
         
@@ -1052,30 +1073,69 @@ for chunk in chat.ask("Your message here"):
             const apiKeyInput = document.getElementById('apiKey');
             const modelInput = document.getElementById('model');
             
+            // 清空模型选择
+            modelInput.innerHTML = '';
+            modelInput.value = '';
+            
             // 更新帮助链接
             updateApiKeyHelpLink();
             
             // 从本地存储获取该模型类型的上次配置
             const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
             
-            // 恢复上次使用的 API Key
-            apiKeyInput.value = savedConfig[`${modelType}_apiKey`] || '';
+            // 如果是双链推理，使用本地配置
+            if (modelType === 'dual_chain') {
+                // 禁用 API Key 输入
+                apiKeyInput.value = '';
+                apiKeyInput.disabled = true;
+                
+                // 从本地存储读取推理链列表
+                const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+                
+                // 恢复上次选择的推理链
+                if (savedConfig.dual_chain_lastModel) {
+                    const selectedChain = Object.values(chains).find(chain => chain.id === savedConfig.dual_chain_lastModel);
+                    if (selectedChain) {
+                        modelInput.value = selectedChain.title;
+                    }
+                }
+            } else {
+                // 启用 API Key 输入
+                apiKeyInput.disabled = false;
+                // 恢复上次使用的 API Key
+                apiKeyInput.value = savedConfig[`${modelType}_apiKey`] || '';
+                // 恢复上次使用的模型
+                modelInput.value = savedConfig[`${modelType}_lastModel`] || '';
+            }
             
-            // 恢复上次使用的模型
-            modelInput.value = savedConfig[`${modelType}_lastModel`] || '';
-            
-            // 清空当前模型列表
-            allModels = [];
-            document.getElementById('modelDropdown').classList.add('hidden');
+            // 刷新模型列表
+            refreshModels();
             
             // 保存配置并更新代码示例
             saveConfig();
             requestAnimationFrame(() => {
                 updateCodeExamples();
             });
+        }
+
+        function loadDualChainModels() {
+            const modelSelect = document.getElementById('model');
+            const chains = document.querySelectorAll('.chain-item');
             
-            // 自动刷新模型列表
-            refreshModels();
+            // 清空并添加所有可用的推理链
+            modelSelect.innerHTML = '';
+            chains.forEach(chain => {
+                const chainId = chain.getAttribute('data-chain-id');
+                const chainName = chain.querySelector('.chain-name').textContent;
+                const option = document.createElement('option');
+                option.value = chainId;
+                option.textContent = chainName;
+                modelSelect.appendChild(option);
+            });
+            
+            if (chains.length === 0) {
+                modelSelect.innerHTML = '<option value="">暂无可用的推理链</option>';
+            }
         }
 
         // 点击页面其他地方时隐藏下拉框
