@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-palette"
-version = "0.1.11"
+version = "0.1.12"
 authors = [
     { name = "AI Palette Team", email = "eason@miyang.ai" }
 ]

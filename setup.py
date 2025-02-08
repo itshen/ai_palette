@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ai-palette",
-    version="0.1.11",
+    version="0.1.12",
     author="Eason Tsui",
     author_email="easontsui@gmail.com",
     description="一个统一的AI聊天接口，支持多个AI提供商",
