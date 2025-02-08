@@ -303,6 +303,17 @@
                 </div>
 
                 <div class="space-y-3">
+                    <!-- 添加配置双链推理按钮 -->
+                    <div class="flex items-center justify-between dark:bg-slate-700/50 bg-slate-50 rounded-lg px-4 py-2">
+                        <label class="text-sm font-medium dark:text-slate-300 text-slate-600">配置双链推理</label>
+                        <button onclick="toggleChainModal()" class="flex items-center justify-center space-x-2 px-3 py-1.5 rounded-lg dark:bg-slate-600 bg-slate-200 dark:text-slate-300 text-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors duration-200">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <span>配置</span>
+                        </button>
+                    </div>
+
                     <div class="flex items-center justify-between dark:bg-slate-700/50 bg-slate-50 rounded-lg px-4 py-2">
                         <label for="enableStreaming" class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
                         <div class="relative inline-block w-12 h-6">
@@ -355,6 +366,124 @@
 
         <!-- 右侧对话界面 -->
         <div class="flex-1 flex flex-col relative transition-all duration-300" id="chatContainer">
+            <!-- 双链推理配置模态框 -->
+            <div id="chainModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+                <div class="relative bg-white dark:bg-slate-800 rounded-xl w-[80vw] h-[80vh] mx-4 shadow-xl transform transition-transform duration-300 scale-95 flex flex-col">
+                    <!-- 模态框头部 -->
+                    <div class="absolute top-4 right-4">
+                        <button onclick="toggleChainModal()" class="dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- 模态框内容区域 -->
+                    <div class="flex flex-1 p-6 gap-6 overflow-hidden">
+                        <!-- 左侧列表 -->
+                        <div class="w-1/4 flex flex-col dark:bg-slate-900 bg-slate-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4 pr-8">
+                                <h3 class="text-lg font-medium dark:text-slate-200 text-slate-900">推理链列表</h3>
+                                <button onclick="addNewChain()" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-200 rounded-lg dark:text-slate-400 text-slate-600">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto">
+                                <ul id="chainList" class="space-y-2">
+                                    <!-- 列表项将通过 JavaScript 动态添加 -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 右侧编辑区域 -->
+                        <div class="flex-1 flex flex-col ml-0"> 
+                            <!-- 右侧顶部标题区域 -->
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 id="chainTitle" class="text-xl font-medium dark:text-slate-200 text-slate-900 px-2 py-1 rounded cursor-pointer" ondblclick="makeEditable(this)">未选择推理链</h2>
+                                <div class="flex gap-2 mr-8">
+                                    <button class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
+                                        导入
+                                    </button>
+                                    <button class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
+                                        导出
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 右侧内容区域 -->
+                            <div class="flex-1 flex flex-col gap-4">
+                                <!-- 思考 prompt -->
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-2">思考 Prompt</label>
+                                    <!-- 思考 prompt 的模型配置 -->
+                                    <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div>
+                                            <select id="thinkingModelType" class="input-base">
+                                                <option value="inherit">继承主配置</option>
+                                                <option value="siliconflow">硅基流动</option>
+                                                <option value="deepseek">DeepSeek</option>
+                                                <option value="ollama">Ollama</option>
+                                                <option value="openai">OpenAI</option>
+                                                <option value="zhipu">智谱AI</option>
+                                                <option value="dashscope">通义千问</option>
+                                                <option value="minimax">MiniMax</option>
+                                                <option value="ernie">百度文心</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <input type="text" id="thinkingModel" class="input-base" placeholder="模型名称（继承或手动输入）">
+                                        </div>
+                                        <div>
+                                            <input type="password" id="thinkingApiKey" class="input-base" placeholder="API Key（继承或手动输入）">
+                                        </div>
+                                    </div>
+                                    <textarea 
+                                        id="thinkingPrompt" 
+                                        class="w-full h-[calc(100%-6rem)] rounded-lg border shadow-sm px-4 py-3 dark:bg-slate-900 bg-slate-50 dark:text-slate-200 text-slate-900 dark:border-slate-700 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                        placeholder="输入思考过程的 prompt..."
+                                    ></textarea>
+                                </div>
+
+                                <!-- 结果 prompt -->
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-2">结果 Prompt</label>
+                                    <!-- 结果 prompt 的模型配置 -->
+                                    <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div>
+                                            <select id="resultModelType" class="input-base">
+                                                <option value="inherit">继承主配置</option>
+                                                <option value="siliconflow">硅基流动</option>
+                                                <option value="deepseek">DeepSeek</option>
+                                                <option value="ollama">Ollama</option>
+                                                <option value="openai">OpenAI</option>
+                                                <option value="zhipu">智谱AI</option>
+                                                <option value="dashscope">通义千问</option>
+                                                <option value="minimax">MiniMax</option>
+                                                <option value="ernie">百度文心</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <input type="text" id="resultModel" class="input-base" placeholder="模型名称（继承或手动输入）">
+                                        </div>
+                                        <div>
+                                            <input type="password" id="resultApiKey" class="input-base" placeholder="API Key（继承或手动输入）">
+                                        </div>
+                                    </div>
+                                    <textarea 
+                                        id="resultPrompt" 
+                                        class="w-full h-[calc(100%-6rem)] rounded-lg border shadow-sm px-4 py-3 dark:bg-slate-900 bg-slate-50 dark:text-slate-200 text-slate-900 dark:border-slate-700 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                        placeholder="输入生成结果的 prompt..."
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 代码示例抽屉 -->
             <div id="codeDrawer" class="fixed right-0 top-0 h-full w-[600px] transform translate-x-full transition-all duration-300 ease-in-out bg-white dark:bg-slate-800 shadow-xl border-l dark:border-slate-700 border-slate-200 flex flex-col">
                 <div class="flex items-center justify-between p-4 border-b dark:border-slate-700 border-slate-200">
@@ -658,7 +787,7 @@ for chunk in chat.ask("Your message here"):
             });
             
             // 初始化后刷新模型列表
-            handleModelTypeChange();
+            refreshModels();
         };
 
         // 显示欢迎模态框
@@ -715,6 +844,7 @@ for chunk in chat.ask("Your message here"):
             const apiKey = document.getElementById('apiKey').value;
             const modelList = document.getElementById('modelList');
             const modelInput = document.getElementById('model');
+            const modelDropdown = document.getElementById('modelDropdown');
             
             try {
                 // 显示加载状态
@@ -726,23 +856,52 @@ for chunk in chat.ask("Your message here"):
                 
                 if (data.success) {
                     allModels = data.models || [];
-                    updateModelList(allModels);
-                    // 如果有模型，显示下拉框
-                    if (allModels.length > 0) {
-                        document.getElementById('modelDropdown').classList.remove('hidden');
-                        modelInput.placeholder = '选择或输入模型名称';
-                    } else {
+                    
+                    // 更新模型列表
+                    modelList.innerHTML = '';
+                    
+                    if (allModels.length === 0) {
+                        const noModels = document.createElement('div');
+                        noModels.className = 'px-4 py-2 dark:text-slate-400 text-slate-500 text-center';
+                        noModels.textContent = '没有可用的模型';
+                        modelList.appendChild(noModels);
                         modelInput.placeholder = '未找到可用模型';
+                        modelDropdown.classList.add('hidden');
+                    } else {
+                        allModels.forEach(model => {
+                            const option = document.createElement('div');
+                            option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
+                            option.textContent = model;
+                            option.onclick = () => {
+                                modelInput.value = model;
+                                modelDropdown.classList.add('hidden');
+                                
+                                // 保存选择
+                                const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                                config[`${modelType}_lastModel`] = model;
+                                localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+                                
+                                // 更新代码示例
+                                updateCodeExamples();
+                            };
+                            modelList.appendChild(option);
+                        });
+                        
+                        modelInput.placeholder = '选择或输入模型名称';
+                        // 显示下拉框
+                        modelDropdown.classList.remove('hidden');
                     }
                 } else {
                     showError(data.error || '获取模型列表失败');
                     modelInput.placeholder = '获取模型失败';
                     allModels = [];
+                    modelDropdown.classList.add('hidden');
                 }
             } catch (error) {
                 showError('获取模型列表失败: ' + error.message);
                 modelInput.placeholder = '获取模型失败';
                 allModels = [];
+                modelDropdown.classList.add('hidden');
             } finally {
                 modelInput.disabled = false;
             }
@@ -1598,10 +1757,16 @@ for chunk in chat.ask("Your message here"):
         // 添加恢复聊天记录的函数
         function restoreChatHistory() {
             const messageList = document.getElementById('messageList');
-            const savedMessages = localStorage.getItem('aiPaletteChatHistory');
+            if (!messageList) return;
             
-            if (!savedMessages) {
-                // 如果没有聊天记录，确保显示建议框
+            // 清空现有消息
+            messageList.innerHTML = '';
+            
+            // 从 localStorage 获取消息历史
+            const messages = JSON.parse(localStorage.getItem('aiPaletteChatHistory') || '[]');
+            
+            // 如果没有消息历史或消息不是数组，显示建议框
+            if (!Array.isArray(messages) || messages.length === 0) {
                 if (!document.getElementById('suggestionBox')) {
                     messageList.innerHTML = `
                         <div id="suggestionBox" class="mb-4">
@@ -1632,10 +1797,8 @@ for chunk in chat.ask("Your message here"):
                 }
                 return;
             }
-
-            const messages = JSON.parse(savedMessages);
-            messageList.innerHTML = ''; // 清空现有内容
             
+            // 有效的消息历史，显示消息
             for (const message of messages) {
                 if (message.type === 'user') {
                     const userMessage = document.createElement('div');
@@ -1903,6 +2066,9 @@ for chunk in chat.ask("Your message here"):
                 attributes: true,
                 attributeFilter: ['class']
             });
+            
+            // 初始化后刷新模型列表
+            refreshModels();
         });
 
         // 处理流式输出变化
@@ -1991,15 +2157,7 @@ chat = AIChat(
     model='[$MODEL$]',  # 当前选择的模型
     api_key='[$API_KEY$]',  # 当前输入的 API Key
     enable_streaming=[$STREAMING$]  # 是否启用流式输出
-)
-
-# 发送消息
-response = chat.ask("Your message here")
-print(response)
-
-# 流式输出
-for chunk in chat.ask("Your message here"):
-    print(chunk["content"], end="", flush=True)`
+)`
         };
 
         // 更新代码示例的函数
@@ -2012,35 +2170,7 @@ for chunk in chat.ask("Your message here"):
                 .replace(/\[\$STREAMING\$\]/g, isPythonCode ? (config.enableStreaming ? 'True' : 'False') : config.enableStreaming);
         }
 
-        // 修改后的 updateCodeExamples 函数
-        function updateCodeExamples() {
-            const config = {
-                modelType: document.getElementById('modelType').value,
-                model: document.getElementById('model').value,
-                apiKey: document.getElementById('apiKey').value,
-                enableStreaming: document.getElementById('enableStreaming').checked
-            };
-
-            // 更新所有代码块
-            document.querySelectorAll('.code-block code').forEach(codeElement => {
-                let template;
-                if (codeElement.classList.contains('language-javascript')) {
-                    template = codeElement.textContent.includes('EventSource') ? 
-                        CODE_TEMPLATES.eventsource : CODE_TEMPLATES.fetch;
-                } else if (codeElement.classList.contains('language-python')) {
-                    template = codeElement.textContent.includes('AIChat') ? 
-                        CODE_TEMPLATES.aichat : CODE_TEMPLATES.requests;
-                } else if (codeElement.classList.contains('language-bash')) {
-                    template = CODE_TEMPLATES.curl;
-                }
-
-                if (template) {
-                    codeElement.textContent = updateCodeWithTemplate(template, config);
-                }
-            });
-        }
-
-        // 修改后的 switchCodeExample 函数
+        // 切换代码示例函数
         function switchCodeExample(type) {
             const selectedType = document.getElementById(`${type}CodeType`).value;
             const examples = document.querySelectorAll(`#${type}Examples .code-example`);
@@ -2082,6 +2212,631 @@ for chunk in chat.ask("Your message here"):
                     }
                 }
             }
+        }
+
+        // 双链推理配置模态框相关函数
+        function toggleChainModal() {
+            const modal = document.getElementById('chainModal');
+            const modalContent = modal.querySelector('.scale-100, .scale-95');
+            
+            if (modal.classList.contains('opacity-0')) {
+                // 显示模态框
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                }
+            } else {
+                // 隐藏模态框
+                if (modalContent) {
+                    modalContent.classList.remove('scale-100');
+                    modalContent.classList.add('scale-95');
+                }
+                setTimeout(() => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }, 300);
+            }
+        }
+
+        // 点击模态框背景关闭
+        document.getElementById('chainModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleChainModal();
+            }
+        });
+
+        // 在页面加载时初始化模型输入框状态
+        window.addEventListener('load', () => {
+            // 初始化思考和结果的模型输入框状态
+            updateModelInputState('thinking', true);
+            updateModelInputState('result', true);
+            
+            // 恢复已保存的推理链数据
+            const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+            const chainList = document.getElementById('chainList');
+            
+            // 清空现有列表
+            chainList.innerHTML = '';
+            
+            // 如果有保存的推理链，则恢复它们
+            if (Object.keys(chains).length > 0) {
+                Object.entries(chains).forEach(([chainId, chainData]) => {
+                    const newChain = document.createElement('li');
+                    newChain.className = 'flex items-center justify-between px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200';
+                    newChain.dataset.chainId = chainId;
+                    
+                    newChain.innerHTML = `
+                        <div class="flex items-center justify-between w-full">
+                            <span class="flex-1 truncate" ondblclick="makeEditable(this)">${chainData.title}</span>
+                            <button onclick="deleteChain(this)" class="ml-2 p-1 rounded-lg dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // 添加点击事件
+                    newChain.addEventListener('click', (e) => {
+                        if (!e.target.closest('button')) {
+                            selectChain(chainId);
+                        }
+                    });
+                    
+                    chainList.appendChild(newChain);
+                });
+            } else {
+                // 如果没有保存的推理链，创建一个默认的
+                const chainId = 'chain_' + Date.now();
+                const newChain = document.createElement('li');
+                newChain.className = 'flex items-center justify-between px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200';
+                newChain.dataset.chainId = chainId;
+                
+                newChain.innerHTML = `
+                    <div class="flex items-center justify-between w-full">
+                        <span class="flex-1 truncate" ondblclick="makeEditable(this)">新的推理链</span>
+                        <button onclick="deleteChain(this)" class="ml-2 p-1 rounded-lg dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                
+                // 添加点击事件
+                newChain.addEventListener('click', (e) => {
+                    if (!e.target.closest('button')) {
+                        selectChain(chainId);
+                    }
+                });
+                
+                chainList.appendChild(newChain);
+                
+                // 创建并保存默认推理链数据
+                const chainData = {
+                    id: chainId,
+                    title: '新的推理链',
+                    thinkingPrompt: '',
+                    resultPrompt: '',
+                    thinkingConfig: {
+                        modelType: 'inherit',
+                        model: '',
+                        apiKey: ''
+                    },
+                    resultConfig: {
+                        modelType: 'inherit',
+                        model: '',
+                        apiKey: ''
+                    }
+                };
+                saveChainData(chainData);
+                
+                // 选中新创建的推理链
+                selectChain(chainId);
+            }
+        });
+
+        // 添加新的推理链
+        function addNewChain() {
+            const chainList = document.getElementById('chainList');
+            const newChain = document.createElement('li');
+            newChain.className = 'flex items-center justify-between px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200';
+            
+            // 生成唯一ID
+            const chainId = 'chain_' + Date.now();
+            newChain.dataset.chainId = chainId;
+            
+            newChain.innerHTML = `
+                <div class="flex items-center justify-between w-full">
+                    <span class="flex-1 truncate" ondblclick="makeEditable(this)">新的推理链</span>
+                    <button onclick="deleteChain(this)" class="ml-2 p-1 rounded-lg dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // 添加点击事件
+            newChain.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    selectChain(chainId);
+                }
+            });
+            
+            chainList.appendChild(newChain);
+            
+            // 创建并保存空的推理链数据
+            const chainData = {
+                id: chainId,
+                title: '新的推理链',
+                thinkingPrompt: '',
+                resultPrompt: ''
+            };
+            saveChainData(chainData);
+            
+            // 选中新创建的推理链
+            selectChain(chainId);
+        }
+
+        // 删除推理链
+        function deleteChain(button) {
+            const chainItem = button.closest('li');
+            const chainId = chainItem.dataset.chainId;
+            
+            // 删除数据
+            const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+            delete chains[chainId];
+            localStorage.setItem('aiPaletteChains', JSON.stringify(chains));
+            
+            chainItem.remove();
+            
+            // 如果删除的是当前选中的推理链，清空右侧内容
+            if (chainId === currentChainId) {
+                document.getElementById('chainTitle').textContent = '未选择推理链';
+                document.getElementById('thinkingPrompt').value = '';
+                document.getElementById('resultPrompt').value = '';
+                currentChainId = null;
+            }
+        }
+
+        // 使元素可编辑
+        function makeEditable(element) {
+            if (!element) return;
+            
+            const chainItem = element.closest('li');
+            const isTitle = element.id === 'chainTitle';
+            
+            // 如果是标题但不是当前选中的推理链，不允许编辑
+            if (isTitle && !currentChainId) return;
+            
+            // 如果是列表项但没有 chainId，不允许编辑
+            const chainId = isTitle ? currentChainId : (chainItem?.dataset?.chainId);
+            if (!chainId) return;
+            
+            element.contentEditable = true;
+            element.focus();
+            
+            // 保存原始内容，以便取消编辑时恢复
+            const originalContent = element.textContent;
+            
+            // 使用防抖进行实时保存
+            let saveTimeout;
+            const debouncedSave = () => {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    const newContent = element.textContent.trim();
+                    if (newContent && newContent !== originalContent) {
+                        const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+                        if (chains[chainId]) {
+                            chains[chainId].title = newContent;
+                            localStorage.setItem('aiPaletteChains', JSON.stringify(chains));
+                            
+                            if (isTitle) {
+                                // 更新列表项的标题
+                                const listItem = document.querySelector(`li[data-chain-id="${chainId}"] span`);
+                                if (listItem) {
+                                    listItem.textContent = newContent;
+                                }
+                            } else {
+                                // 更新右侧标题
+                                const titleElement = document.getElementById('chainTitle');
+                                if (titleElement && chainId === currentChainId) {
+                                    titleElement.textContent = newContent;
+                                }
+                            }
+                        }
+                    }
+                }, 300); // 300ms 的防抖延迟
+            };
+            
+            // 监听输入事件进行实时保存
+            element.addEventListener('input', debouncedSave);
+            
+            // 处理回车键
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+            });
+            
+            // 失去焦点时的处理
+            element.addEventListener('blur', () => {
+                element.contentEditable = false;
+                const newContent = element.textContent.trim();
+                
+                // 如果内容为空，恢复原始内容
+                if (!newContent) {
+                    element.textContent = originalContent;
+                }
+                
+                // 清除输入事件监听器
+                element.removeEventListener('input', debouncedSave);
+            });
+        }
+
+        // 选择推理链
+        let currentChainId = null;
+        function selectChain(chainId) {
+            // 移除其他列表项的选中状态
+            document.querySelectorAll('#chainList li').forEach(item => {
+                item.classList.remove('dark:bg-blue-600', 'bg-blue-100');
+            });
+            
+            // 添加选中状态
+            const selectedItem = document.querySelector(`li[data-chain-id="${chainId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('dark:bg-blue-600', 'bg-blue-100');
+            }
+            
+            // 加载推理链数据
+            const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+            const chainData = chains[chainId];
+            
+            if (chainData) {
+                // 启用输入框
+                document.getElementById('thinkingPrompt').disabled = false;
+                document.getElementById('resultPrompt').disabled = false;
+                
+                // 更新右侧内容
+                document.getElementById('chainTitle').textContent = chainData.title;
+                document.getElementById('thinkingPrompt').value = chainData.thinkingPrompt || '';
+                document.getElementById('resultPrompt').value = chainData.resultPrompt || '';
+                
+                // 加载模型配置
+                if (chainData.thinkingConfig) {
+                    document.getElementById('thinkingModelType').value = chainData.thinkingConfig.modelType;
+                    document.getElementById('thinkingModel').value = chainData.thinkingConfig.model;
+                    document.getElementById('thinkingApiKey').value = chainData.thinkingConfig.apiKey;
+                    
+                    // 根据是否继承设置输入框状态
+                    updateModelInputState('thinking', chainData.thinkingConfig.modelType === 'inherit');
+                }
+                
+                if (chainData.resultConfig) {
+                    document.getElementById('resultModelType').value = chainData.resultConfig.modelType;
+                    document.getElementById('resultModel').value = chainData.resultConfig.model;
+                    document.getElementById('resultApiKey').value = chainData.resultConfig.apiKey;
+                    
+                    // 根据是否继承设置输入框状态
+                    updateModelInputState('result', chainData.resultConfig.modelType === 'inherit');
+                }
+                
+                currentChainId = chainId;
+                
+                // 添加输入事件监听
+                setupPromptListeners();
+            }
+        }
+
+        // 设置 prompt 输入监听
+        function setupPromptListeners() {
+            const thinkingPrompt = document.getElementById('thinkingPrompt');
+            const resultPrompt = document.getElementById('resultPrompt');
+            const thinkingModelType = document.getElementById('thinkingModelType');
+            const thinkingModel = document.getElementById('thinkingModel');
+            const thinkingApiKey = document.getElementById('thinkingApiKey');
+            const resultModelType = document.getElementById('resultModelType');
+            const resultModel = document.getElementById('resultModel');
+            const resultApiKey = document.getElementById('resultApiKey');
+            
+            // 防抖函数
+            const debounce = (func, wait) => {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            };
+            
+            // 保存更改到 localStorage
+            const saveChanges = () => {
+                if (currentChainId) {
+                    const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+                    if (chains[currentChainId]) {
+                        chains[currentChainId].thinkingPrompt = thinkingPrompt.value;
+                        chains[currentChainId].resultPrompt = resultPrompt.value;
+                        chains[currentChainId].thinkingConfig = {
+                            modelType: thinkingModelType.value,
+                            model: thinkingModel.value,
+                            apiKey: thinkingApiKey.value
+                        };
+                        chains[currentChainId].resultConfig = {
+                            modelType: resultModelType.value,
+                            model: resultModel.value,
+                            apiKey: resultApiKey.value
+                        };
+                        localStorage.setItem('aiPaletteChains', JSON.stringify(chains));
+                    }
+                }
+            };
+            
+            // 使用防抖处理保存
+            const debouncedSave = debounce(saveChanges, 300);
+            
+            // 添加输入事件监听器
+            thinkingPrompt.addEventListener('input', debouncedSave);
+            resultPrompt.addEventListener('input', debouncedSave);
+            thinkingModelType.addEventListener('change', debouncedSave);
+            thinkingModel.addEventListener('input', debouncedSave);
+            thinkingApiKey.addEventListener('input', debouncedSave);
+            resultModelType.addEventListener('change', debouncedSave);
+            resultModel.addEventListener('input', debouncedSave);
+            resultApiKey.addEventListener('input', debouncedSave);
+            
+            // 处理模型类型变化
+            thinkingModelType.addEventListener('change', () => {
+                const isInherit = thinkingModelType.value === 'inherit';
+                updateModelInputState('thinking', isInherit);
+                if (!isInherit) {
+                    // 先清空模型和key
+                    thinkingModel.value = '';
+                    thinkingApiKey.value = '';
+                    
+                    // 只自动填充 API Key
+                    const mainConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                    const selectedType = thinkingModelType.value;
+                    if (mainConfig[`${selectedType}_apiKey`]) {
+                        thinkingApiKey.value = mainConfig[`${selectedType}_apiKey`];
+                    }
+                }
+                debouncedSave();
+            });
+            
+            resultModelType.addEventListener('change', () => {
+                const isInherit = resultModelType.value === 'inherit';
+                updateModelInputState('result', isInherit);
+                if (!isInherit) {
+                    // 先清空模型和key
+                    resultModel.value = '';
+                    resultApiKey.value = '';
+                    
+                    // 只自动填充 API Key
+                    const mainConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                    const selectedType = resultModelType.value;
+                    if (mainConfig[`${selectedType}_apiKey`]) {
+                        resultApiKey.value = mainConfig[`${selectedType}_apiKey`];
+                    }
+                }
+                debouncedSave();
+            });
+        }
+
+        // 更新模型输入框状态
+        function updateModelInputState(type, isInherit) {
+            const modelInput = document.getElementById(`${type}Model`);
+            const apiKeyInput = document.getElementById(`${type}ApiKey`);
+            const modelTypeSelect = document.getElementById(`${type}ModelType`);
+            
+            if (isInherit) {
+                modelInput.disabled = true;
+                apiKeyInput.disabled = true;
+                modelInput.value = '';
+                apiKeyInput.value = '';
+                modelInput.placeholder = '继承主配置';
+                apiKeyInput.placeholder = '继承主配置';
+                
+                // 隐藏模型选择下拉框
+                if (window[`${type}ModelDropdown`]) {
+                    window[`${type}ModelDropdown`].classList.add('hidden');
+                }
+            } else {
+                modelInput.disabled = false;
+                apiKeyInput.disabled = false;
+                modelInput.placeholder = '选择或输入模型名称';
+                apiKeyInput.placeholder = '输入 API Key';
+                
+                // 从主配置获取当前类型的 API Key
+                const mainConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                const selectedType = modelTypeSelect.value;
+                if (mainConfig[`${selectedType}_apiKey`]) {
+                    apiKeyInput.value = mainConfig[`${selectedType}_apiKey`];
+                }
+                
+                // 获取并显示模型列表
+                refreshChainModels(type);
+            }
+        }
+
+        // 刷新推理链模型列表
+        async function refreshChainModels(type) {
+            const modelTypeSelect = document.getElementById(`${type}ModelType`);
+            const modelInput = document.getElementById(`${type}Model`);
+            const apiKeyInput = document.getElementById(`${type}ApiKey`);
+            const modelType = modelTypeSelect.value;
+            
+            try {
+                // 显示加载状态
+                modelInput.placeholder = '加载中...';
+                modelInput.disabled = true;
+                
+                const response = await fetch(`/api/models?type=${modelType}&api_key=${apiKeyInput.value}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 保存模型列表到全局变量
+                    window[`${type}Models`] = data.models || [];
+                    
+                    // 创建或更新下拉框
+                    createModelDropdown(type);
+                    
+                    // 如果有模型，显示下拉框
+                    if (window[`${type}Models`].length > 0) {
+                        modelInput.placeholder = '选择或输入模型名称';
+                    } else {
+                        modelInput.placeholder = '未找到可用模型';
+                    }
+                } else {
+                    showError(data.error || '获取模型列表失败');
+                    modelInput.placeholder = '获取模型失败';
+                    window[`${type}Models`] = [];
+                }
+            } catch (error) {
+                showError('获取模型列表失败: ' + error.message);
+                modelInput.placeholder = '获取模型失败';
+                window[`${type}Models`] = [];
+            } finally {
+                modelInput.disabled = false;
+            }
+        }
+
+        // 创建模型下拉框
+        function createModelDropdown(type) {
+            const modelInput = document.getElementById(`${type}Model`);
+            if (!modelInput) return; // 如果输入框不存在，直接返回
+            
+            // 如果下拉框不存在，创建一个
+            let dropdown = window[`${type}ModelDropdown`];
+            if (!dropdown) {
+                dropdown = document.createElement('div');
+                dropdown.id = `${type}ModelDropdown`;
+                dropdown.className = 'hidden absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-lg dark:bg-slate-700 bg-white dark:border-slate-600 border-slate-200 border shadow-lg';
+                
+                // 创建模型列表容器
+                const modelList = document.createElement('div');
+                modelList.id = `${type}ModelList`;
+                modelList.className = 'py-1';
+                dropdown.appendChild(modelList);
+                
+                // 将下拉框插入到输入框后面
+                modelInput.parentNode.style.position = 'relative';
+                modelInput.parentNode.appendChild(dropdown);
+                window[`${type}ModelDropdown`] = dropdown;
+                
+                // 添加点击事件监听
+                document.addEventListener('click', (e) => {
+                    if (!modelInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+                
+                // 添加输入框点击事件
+                modelInput.addEventListener('click', () => {
+                    if (window[`${type}Models`]?.length > 0) {
+                        updateModelList(type, modelInput.value);
+                        dropdown.classList.remove('hidden');
+                    }
+                });
+                
+                // 添加输入事件
+                modelInput.addEventListener('input', () => {
+                    if (window[`${type}Models`]?.length > 0) {
+                        updateModelList(type, modelInput.value);
+                        dropdown.classList.remove('hidden');
+                    }
+                });
+            }
+            
+            // 确保下拉框和列表容器存在后再更新列表
+            if (document.getElementById(`${type}ModelList`)) {
+                updateModelList(type, modelInput.value);
+            }
+        }
+
+        // 更新模型列表
+        function updateModelList(type, query) {
+            const modelList = document.getElementById(`${type}ModelList`);
+            if (!modelList) return; // 如果元素不存在，直接返回
+            
+            const models = window[`${type}Models`] || [];
+            const filteredModels = query ? 
+                models.filter(model => model.toLowerCase().includes(query.toLowerCase())) : 
+                models;
+            
+            modelList.innerHTML = '';
+            
+            if (filteredModels.length === 0) {
+                const noModels = document.createElement('div');
+                noModels.className = 'px-4 py-2 dark:text-slate-400 text-slate-500 text-center';
+                noModels.textContent = '没有可用的模型';
+                modelList.appendChild(noModels);
+                return;
+            }
+            
+            filteredModels.forEach(model => {
+                const option = document.createElement('div');
+                option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
+                option.textContent = model;
+                option.onclick = () => {
+                    document.getElementById(`${type}Model`).value = model;
+                    window[`${type}ModelDropdown`].classList.add('hidden');
+                    // 触发保存
+                    document.getElementById(`${type}Model`).dispatchEvent(new Event('input'));
+                };
+                modelList.appendChild(option);
+            });
+        }
+
+        // 添加双链推理配置模态框切换函数
+        function toggleChainModal() {
+            const modal = document.getElementById('chainModal');
+            const modalContent = modal.querySelector('.scale-100, .scale-95');
+            
+            if (modal.classList.contains('opacity-0')) {
+                // 显示模态框
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                }
+            } else {
+                // 隐藏模态框
+                if (modalContent) {
+                    modalContent.classList.remove('scale-100');
+                    modalContent.classList.add('scale-95');
+                }
+                setTimeout(() => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }, 300);
+            }
+        }
+
+        // 点击模态框背景关闭
+        document.getElementById('chainModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleChainModal();
+            }
+        });
+
+        // 在页面加载时初始化模型输入框状态
+        window.addEventListener('load', () => {
+            // 初始化思考和结果的模型输入框状态
+            updateModelInputState('thinking', true);
+            updateModelInputState('result', true);
+            
+            // ... 其他现有的初始化代码 ...
+        });
+
+        // 保存推理链数据
+        function saveChainData(chainData) {
+            const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+            chains[chainData.id] = chainData;
+            localStorage.setItem('aiPaletteChains', JSON.stringify(chains));
         }
     </script>
 </body>
