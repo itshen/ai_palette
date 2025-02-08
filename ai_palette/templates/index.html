@@ -383,9 +383,9 @@
                     <div class="flex flex-1 p-6 gap-6 overflow-hidden">
                         <!-- 左侧列表 -->
                         <div class="w-1/4 flex flex-col dark:bg-slate-900 bg-slate-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-4 pr-8">
+                            <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-medium dark:text-slate-200 text-slate-900">推理链列表</h3>
-                                <button onclick="addNewChain()" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-200 rounded-lg dark:text-slate-400 text-slate-600">
+                                <button onclick="addNewChain()" class="p-1.5 dark:hover:bg-slate-700 hover:bg-slate-200 rounded-lg dark:text-slate-400 text-slate-600" style="margin-right: 10px;">
                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
@@ -910,26 +910,62 @@ for chunk in chat.ask("Your message here"):
         // 修改过滤模型列表函数
         function filterModels(query) {
             const dropdown = document.getElementById('modelDropdown');
+            const modelList = document.getElementById('modelList');
+            
+            if (!allModels || allModels.length === 0) {
+                refreshModels();
+                return;
+            }
+            
             const filteredModels = allModels.filter(model => 
                 model.toLowerCase().includes(query.toLowerCase())
             );
-            updateModelList(filteredModels);
-            if (filteredModels.length > 0) {
-                dropdown.classList.remove('hidden');
+            
+            // 更新模型列表显示
+            modelList.innerHTML = '';
+            
+            if (filteredModels.length === 0) {
+                const noModels = document.createElement('div');
+                noModels.className = 'px-4 py-2 dark:text-slate-400 text-slate-500 text-center';
+                noModels.textContent = '没有匹配的模型';
+                modelList.appendChild(noModels);
+            } else {
+                filteredModels.forEach(model => {
+                    const option = document.createElement('div');
+                    option.className = 'px-4 py-2 dark:hover:bg-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-200 text-slate-700';
+                    option.textContent = model;
+                    option.onclick = () => {
+                        document.getElementById('model').value = model;
+                        dropdown.classList.add('hidden');
+                        
+                        // 保存选择
+                        const modelType = document.getElementById('modelType').value;
+                        const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                        config[`${modelType}_lastModel`] = model;
+                        localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+                        
+                        // 更新代码示例
+                        updateCodeExamples();
+                    };
+                    modelList.appendChild(option);
+                });
             }
+            
+            // 显示下拉框
+            dropdown.classList.remove('hidden');
         }
         
         // 修改显示模型下拉列表函数
         function showModelDropdown() {
             const dropdown = document.getElementById('modelDropdown');
+            const modelInput = document.getElementById('model');
             
             // 如果还没有模型列表数据，先获取
             if (allModels.length === 0) {
                 refreshModels();
             } else {
                 // 显示所有模型
-                updateModelList(allModels);
-                dropdown.classList.remove('hidden');
+                filterModels(modelInput.value);
             }
         }
         
@@ -2226,6 +2262,15 @@ chat = AIChat(
                     modalContent.classList.remove('scale-95');
                     modalContent.classList.add('scale-100');
                 }
+                
+                // 检查是否有选中的条目，如果没有则选中第一个
+                if (!currentChainId) {
+                    const firstChainItem = document.querySelector('#chainList li');
+                    if (firstChainItem) {
+                        const chainId = firstChainItem.dataset.chainId;
+                        selectChain(chainId);
+                    }
+                }
             } else {
                 // 隐藏模态框
                 if (modalContent) {
@@ -2237,13 +2282,6 @@ chat = AIChat(
                 }, 300);
             }
         }
-
-        // 点击模态框背景关闭
-        document.getElementById('chainModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                toggleChainModal();
-            }
-        });
 
         // 在页面加载时初始化模型输入框状态
         window.addEventListener('load', () => {
@@ -2295,7 +2333,7 @@ chat = AIChat(
                 newChain.innerHTML = `
                     <div class="flex items-center justify-between w-full">
                         <span class="flex-1 truncate" ondblclick="makeEditable(this)">新的推理链</span>
-                        <button onclick="deleteChain(this)" class="ml-2 p-1 rounded-lg dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                        <button onclick="deleteChain(this)" class="p-1.5 dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -2349,7 +2387,7 @@ chat = AIChat(
             newChain.innerHTML = `
                 <div class="flex items-center justify-between w-full">
                     <span class="flex-1 truncate" ondblclick="makeEditable(this)">新的推理链</span>
-                    <button onclick="deleteChain(this)" class="ml-2 p-1 rounded-lg dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                    <button onclick="deleteChain(this)" class="p-1.5 dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -2804,6 +2842,15 @@ chat = AIChat(
                     modalContent.classList.remove('scale-95');
                     modalContent.classList.add('scale-100');
                 }
+                
+                // 检查是否有选中的条目，如果没有则选中第一个
+                if (!currentChainId) {
+                    const firstChainItem = document.querySelector('#chainList li');
+                    if (firstChainItem) {
+                        const chainId = firstChainItem.dataset.chainId;
+                        selectChain(chainId);
+                    }
+                }
             } else {
                 // 隐藏模态框
                 if (modalContent) {
@@ -2815,13 +2862,6 @@ chat = AIChat(
                 }, 300);
             }
         }
-
-        // 点击模态框背景关闭
-        document.getElementById('chainModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                toggleChainModal();
-            }
-        });
 
         // 在页面加载时初始化模型输入框状态
         window.addEventListener('load', () => {
