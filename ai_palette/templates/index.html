@@ -708,17 +708,27 @@
             helpLink.style.display = (modelType === 'ollama') ? 'none' : 'inline-block';
         }
 
-        // 添加转义 HTML 的函数
+        // 修改 escapeHtml 函数
         function escapeHtml(text) {
             if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            return text.replace(/[&<>"']/g, function(match) {
+                const escape = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return escape[match];
+            });
         }
 
-        // 简单的markdown解析
+        // 修改 parseMarkdown 函数
         function parseMarkdown(text) {
             if (!text) return '';
+            
+            // 先转义 HTML
+            text = escapeHtml(text);
             
             // 处理加粗 **text**
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -736,6 +746,14 @@
             
             // 处理分隔线 ---
             text = text.replace(/^---$/gm, '<hr class="my-4 border-t dark:border-slate-700 border-slate-200">');
+            
+            // 处理代码块
+            text = text.replace(/```(.*?)\n([\s\S]*?)```/g, function(match, lang, code) {
+                return `<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 my-2"><code class="language-${lang}">${code}</code></pre>`;
+            });
+            
+            // 处理行内代码
+            text = text.replace(/`([^`]+)`/g, '<code class="bg-slate-100 dark:bg-slate-800 px-1 rounded">$1</code>');
             
             // 处理换行，保持原有的换行
             text = text.split('\n').map(line => {
@@ -804,19 +822,21 @@
             // 添加用户消息
             const userMessage = document.createElement('div');
             userMessage.className = 'flex items-start space-x-3 mb-4';
-            // 将换行符转换为 <br/>
-            const displayContent = prompt.replace(/\n/g, '<br/>');
+            // 先转义内容，再将换行符转换为 <br/>
+            const escapedContent = escapeHtml(prompt);
+            const displayContent = escapedContent.replace(/\n/g, '<br/>');
             userMessage.innerHTML = `
                 <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
                 <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
                     <p class="dark:text-slate-200 text-slate-700" data-original-content="${escapeHtml(prompt)}">${displayContent}</p>
                 </div>
             `;
+
             // 保存用户消息到聊天记录
             const messages = JSON.parse(localStorage.getItem('aiPaletteChatHistory') || '[]');
             messages.push({
                 type: 'user',
-                content: prompt  // 保存原始内容，包含 \n
+                content: prompt  // 保存原始内容
             });
             localStorage.setItem('aiPaletteChatHistory', JSON.stringify(messages));
 
@@ -940,13 +960,9 @@
                                             if (thinkingLabel) {
                                                 thinkingLabel.classList.add('thinking-done');
                                             }
-                                            // 直接添加内容,不做markdown解析
-                                            if (window.currentResponse === undefined) {
-                                                window.currentResponse = '';
-                                            }
                                             // 收到内容时就直接将连续换行符替换为单个换行符
                                             const content = data.content.replace(/\n\n/g, '\n');
-                                            window.currentResponse += content;
+                                            window.currentResponse = (window.currentResponse || '') + content;
                                             
                                             // 保存原始内容
                                             responseElement.dataset.originalContent = window.currentResponse;
@@ -954,11 +970,9 @@
                                             // 尝试解析整个内容的markdown
                                             try {
                                                 responseElement.innerHTML = parseMarkdown(window.currentResponse);
-                                                // 保存原始内容
-                                                responseElement.dataset.originalContent = window.currentResponse;
                                             } catch (e) {
-                                                // 如果解析失败,至少显示原始内容
-                                                responseElement.textContent = window.currentResponse;
+                                                // 如果解析失败，至少显示转义后的原始内容
+                                                responseElement.innerHTML = escapeHtml(window.currentResponse);
                                             }
                                         }
                                     }
@@ -1307,11 +1321,9 @@
                 
                 if (message.querySelector('.bg-blue-600')) { // 用户消息
                     const pElement = message.querySelector('p');
-                    // 将 <br/> 转换回 \n
-                    const content = pElement.innerHTML.replace(/<br\s*\/?>/g, '\n');
                     messages.push({
                         type: 'user',
-                        content: content
+                        content: pElement.dataset.originalContent || pElement.textContent.replace(/<br\s*\/?>/g, '\n')
                     });
                 } else if (message.querySelector('.bg-purple-600')) { // AI 消息
                     const modelInfo = message.querySelector('.text-xs').textContent;
@@ -1385,8 +1397,9 @@
                 if (message.type === 'user') {
                     const userMessage = document.createElement('div');
                     userMessage.className = 'flex items-start space-x-3 mb-4';
-                    // 将原始内容中的 \n 转换为 <br/>
-                    const displayContent = message.content.replace(/\n/g, '<br/>');
+                    // 先转义内容，再将换行符转换为 <br/>
+                    const escapedContent = escapeHtml(message.content);
+                    const displayContent = escapedContent.replace(/\n/g, '<br/>');
                     userMessage.innerHTML = `
                         <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white">U</div>
                         <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
@@ -1408,7 +1421,7 @@
                                     <svg class="w-4 h-4 mr-1 reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: ${arrowRotation}">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
-                                    思考过程
+                                    <span class="thinking-label thinking-done">思考过程</span>
                                 </div>
                                 <div class="pl-5 mt-2 reasoning-content" style="height: ${contentHeight}; transition: height 0.3s">
                                     <div class="whitespace-pre-wrap text-slate-400" data-original-content="${escapeHtml(message.reasoning)}">${parseMarkdown(message.reasoning)}</div>
@@ -1419,7 +1432,7 @@
                     aiMessage.innerHTML = `
                         <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 text-white">AI</div>
                         <div class="flex-1 dark:bg-slate-800 bg-white rounded-lg p-4 dark:border-slate-700 border-slate-200 border">
-                            <div class="text-xs dark:text-slate-400 text-slate-500 mb-2">${message.modelInfo}</div>
+                            <div class="text-xs dark:text-slate-400 text-slate-500 mb-2">${escapeHtml(message.modelInfo)}</div>
                             <div class="dark:text-slate-400 text-slate-500 text-sm mb-2" id="ai-reasoning-${Date.now()}">${reasoningHtml}</div>
                             <pre class="dark:text-slate-200 text-slate-700 whitespace-pre-wrap" data-original-content="${escapeHtml(message.content)}">${parseMarkdown(message.content)}</pre>
                             <div class="flex justify-end space-x-2 mt-2 dark:text-slate-400 text-slate-500">
