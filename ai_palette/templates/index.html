@@ -419,6 +419,7 @@
                                 <!-- 思考 prompt -->
                                 <div class="flex-1">
                                     <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-2">思考 Prompt</label>
+                                    <p class="text-xs dark:text-slate-400 text-slate-500 mb-2">需要包含用户请求占位符 [$query$]</p>
                                     <!-- 思考 prompt 的模型配置 -->
                                     <div class="grid grid-cols-3 gap-2 mb-2">
                                         <div>
@@ -444,12 +445,15 @@
                                         id="thinkingPrompt" 
                                         class="w-full h-[calc(100%-6rem)] rounded-lg border shadow-sm px-4 py-3 dark:bg-slate-900 bg-slate-50 dark:text-slate-200 text-slate-900 dark:border-slate-700 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                         placeholder="输入思考过程的 prompt..."
+                                        onblur="validateThinkingPrompt(this)"
                                     ></textarea>
                                 </div>
+                                <p> </p>
 
                                 <!-- 结果 prompt -->
                                 <div class="flex-1">
                                     <label class="block text-sm font-medium dark:text-slate-300 text-slate-600 mb-2">结果 Prompt</label>
+                                    <p class="text-xs dark:text-slate-400 text-slate-500 mb-2">需要包含：思考占位符 [$thought$]、用户请求占位符 [$query$]</p>
                                     <!-- 结果 prompt 的模型配置 -->
                                     <div class="grid grid-cols-3 gap-2 mb-2">
                                         <div>
@@ -475,6 +479,7 @@
                                         id="resultPrompt" 
                                         class="w-full h-[calc(100%-6rem)] rounded-lg border shadow-sm px-4 py-3 dark:bg-slate-900 bg-slate-50 dark:text-slate-200 text-slate-900 dark:border-slate-700 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                         placeholder="输入生成结果的 prompt..."
+                                        onblur="validateResultPrompt(this)"
                                     ></textarea>
                                 </div>
                             </div>
@@ -3058,6 +3063,83 @@ chat = AIChat(
             };
 
             input.click();
+        }
+
+        // 验证结果 Prompt 是否包含思考占位符
+        function validateResultPrompt(textarea) {
+            const content = textarea.value;
+            const warningId = 'resultPromptWarning';
+            const existingWarning = document.getElementById(warningId);
+            const placeholderText = textarea.parentNode.querySelector('.text-xs');
+            
+            if (content && !content.includes('[$thought$]')) {
+                // 添加红色边框和文字
+                textarea.classList.add('border-red-500');
+                placeholderText.className = 'text-xs text-red-500 mb-2';
+            } else {
+                // 恢复正常颜色
+                textarea.classList.remove('border-red-500');
+                placeholderText.className = 'text-xs dark:text-slate-400 text-slate-500 mb-2';
+                // 移除警告（如果存在）
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+            }
+        }
+
+        // 验证思考 Prompt 是否包含用户请求占位符
+        function validateThinkingPrompt(textarea) {
+            const content = textarea.value;
+            const warningId = 'thinkingPromptWarning';
+            const existingWarning = document.getElementById(warningId);
+            const placeholderText = textarea.parentNode.querySelector('.text-xs');
+            
+            if (content && !content.includes('[$query$]')) {
+                // 添加红色边框和文字
+                textarea.classList.add('border-red-500');
+                placeholderText.className = 'text-xs text-red-500 mb-2';
+                
+            } else {
+                // 恢复正常颜色
+                textarea.classList.remove('border-red-500');
+                placeholderText.className = 'text-xs dark:text-slate-400 text-slate-500 mb-2';
+                // 移除警告（如果存在）
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+            }
+        }
+
+        // 验证结果 Prompt 是否包含必要的占位符
+        function validateResultPrompt(textarea) {
+            const content = textarea.value;
+            const warningId = 'resultPromptWarning';
+            const existingWarning = document.getElementById(warningId);
+            const placeholderText = textarea.parentNode.querySelector('.text-xs');
+            const missingPlaceholders = [];
+            
+            if (content) {
+                if (!content.includes('[$thought$]')) {
+                    missingPlaceholders.push('思考占位符 [$thought$]');
+                }
+                if (!content.includes('[$query$]')) {
+                    missingPlaceholders.push('用户请求占位符 [$query$]');
+                }
+            }
+            
+            if (content && missingPlaceholders.length > 0) {
+                // 添加红色边框和文字
+                textarea.classList.add('border-red-500');
+                placeholderText.className = 'text-xs text-red-500 mb-2';
+            } else {
+                // 恢复正常颜色
+                textarea.classList.remove('border-red-500');
+                placeholderText.className = 'text-xs dark:text-slate-400 text-slate-500 mb-2';
+                // 移除警告（如果存在）
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+            }
         }
     </script>
 </body>
