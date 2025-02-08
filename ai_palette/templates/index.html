@@ -143,6 +143,16 @@
             .thinking-text {
                 @apply text-slate-400;
             }
+
+            .code-block {
+                @apply font-mono text-sm whitespace-pre;
+            }
+            .code-block code {
+                @apply dark:text-slate-300 text-slate-700 whitespace-pre;
+            }
+            .drawer-open {
+                @apply pr-[600px];
+            }
         }
     </style>
 </head>
@@ -285,8 +295,8 @@
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <input type="checkbox" id="enableStreaming" class="rounded dark:border-slate-600 border-slate-300">
-                    <label class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
+                    <input type="checkbox" id="enableStreaming" onchange="handleStreamingChange()" class="rounded dark:border-slate-600 border-slate-300">
+                    <label for="enableStreaming" class="text-sm font-medium dark:text-slate-300 text-slate-600">启用流式输出</label>
                 </div>
             </div>
 
@@ -319,7 +329,180 @@
         </div>
 
         <!-- 右侧对话界面 -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col relative transition-all duration-300" id="chatContainer">
+            <!-- 代码示例抽屉 -->
+            <div id="codeDrawer" class="fixed right-0 top-0 h-full w-[600px] transform translate-x-full transition-transform duration-300 ease-in-out bg-white dark:bg-slate-800 shadow-xl border-l dark:border-slate-700 border-slate-200 flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b dark:border-slate-700 border-slate-200">
+                    <h3 class="text-lg font-medium dark:text-slate-200 text-slate-900">代码示例</h3>
+                    <button onclick="toggleCodeDrawer()" class="dark:text-slate-400 text-slate-500 dark:hover:text-slate-300 hover:text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4">
+                    <!-- 前端代码示例 -->
+                    <div class="mb-8">
+                        <h4 class="text-base font-medium dark:text-slate-200 text-slate-900 mb-4">前端调用示例</h4>
+                        <div class="mb-4">
+                            <select id="frontendCodeType" onchange="switchCodeExample('frontend')" class="input-base">
+                                <option value="curl">cURL</option>
+                                <option value="requests">Python 3.x - Requests</option>
+                                <option value="fetch">JavaScript (Fetch)</option>
+                                <option value="eventsource">JavaScript (EventSource)</option>
+                            </select>
+                        </div>
+
+                        <div id="frontendExamples">
+                            <!-- cURL -->
+                            <div id="curlExample" class="code-example">
+                                <div class="relative">
+                                    <div class="absolute right-2 top-2">
+                                        <button onclick="copyCode(this)" class="text-xs px-2 py-1 rounded dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200">
+                                            复制代码
+                                        </button>
+                                    </div>
+                                    <pre class="code-block dark:bg-slate-900 bg-slate-50 rounded-lg p-4 text-sm overflow-x-auto">
+<code class="language-bash">curl -X POST http://localhost:18000/api/chat \\
+-H "Content-Type: application/json" \\
+-d '{
+    "model_type": "[$MODEL_TYPE$]",  // 当前选择的模型类型
+    "model": "[$MODEL$]",  // 当前选择的模型
+    "api_key": "[$API_KEY$]",  // 当前输入的 API Key
+    "prompt": "Your message here",
+    "enable_streaming": [$STREAMING$]  // 是否启用流式输出
+}'</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Python Requests -->
+                            <div id="requestsExample" class="code-example hidden">
+                                <div class="relative">
+                                    <div class="absolute right-2 top-2">
+                                        <button onclick="copyCode(this)" class="text-xs px-2 py-1 rounded dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200">
+                                            复制代码
+                                        </button>
+                                    </div>
+                                    <pre class="code-block dark:bg-slate-900 bg-slate-50 rounded-lg p-4 text-sm overflow-x-auto">
+<code class="language-python">import requests
+
+response = requests.post(
+    'http://localhost:18000/api/chat',
+    json={
+        'model_type': "[$MODEL_TYPE$]",  # 当前选择的模型类型
+        'model': "[$MODEL$]",  # 当前选择的模型
+        'api_key': "[$API_KEY$]",  # 当前输入的 API Key
+        'prompt': 'Your message here',
+        'enable_streaming': True if '[$STREAMING$]' == 'true' else False  # 是否启用流式输出
+    }
+)
+
+print(response.json()['response'])</code></pre>
+                                </div>
+                            </div>
+                            
+                            <!-- JavaScript (Fetch) -->
+                            <div id="fetchExample" class="code-example hidden">
+                                <div class="relative">
+                                    <div class="absolute right-2 top-2">
+                                        <button onclick="copyCode(this)" class="text-xs px-2 py-1 rounded dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200">
+                                            复制代码
+                                        </button>
+                                    </div>
+                                    <pre class="code-block dark:bg-slate-900 bg-slate-50 rounded-lg p-4 text-sm overflow-x-auto">
+<code class="language-javascript">const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        model_type: "[$MODEL_TYPE$]",  // 当前选择的模型类型
+        model: "[$MODEL$]",  // 当前选择的模型
+        api_key: "[$API_KEY$]",  // 当前输入的 API Key
+        prompt: 'Your message here',
+        enable_streaming: True if '[$STREAMING$]' == 'true' else False  // 是否启用流式输出
+    })
+});
+
+const data = await response.json();
+console.log(data.response);</code></pre>
+                                </div>
+                            </div>
+                            
+                            <!-- JavaScript (EventSource) -->
+                            <div id="eventsourceExample" class="code-example hidden">
+                                <div class="relative">
+                                    <div class="absolute right-2 top-2">
+                                        <button onclick="copyCode(this)" class="text-xs px-2 py-1 rounded dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200">
+                                            复制代码
+                                        </button>
+                                    </div>
+                                    <pre class="code-block dark:bg-slate-900 bg-slate-50 rounded-lg p-4 text-sm overflow-x-auto">
+<code class="language-javascript">const params = new URLSearchParams({
+    model_type: "[$MODEL_TYPE$]",  // 当前选择的模型类型
+    model: "[$MODEL$]",  // 当前选择的模型
+    api_key: "[$API_KEY$]",  // 当前输入的 API Key
+    prompt: 'Your message here',
+    enable_streaming: true  // 流式输出始终启用
+});
+
+const eventSource = new EventSource(\`/api/chat?\${params}\`);
+
+eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data.content);
+};
+
+eventSource.onerror = () => {
+    eventSource.close();
+};</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 后端代码示例 -->
+                    <div>
+                        <h4 class="text-base font-medium dark:text-slate-200 text-slate-900 mb-4">后端调用示例</h4>
+                        <div class="relative">
+                            <div class="absolute right-2 top-2">
+                                <button onclick="copyCode(this)" class="text-xs px-2 py-1 rounded dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200">
+                                    复制代码
+                                </button>
+                            </div>
+                            <pre class="code-block dark:bg-slate-900 bg-slate-50 rounded-lg p-4 text-sm overflow-x-auto">
+<code class="language-python">from ai_palette import AIChat
+
+# 初始化聊天实例
+chat = AIChat(
+    provider="[$MODEL_TYPE$]",  # 当前选择的模型类型
+    model="[$MODEL$]",  # 当前选择的模型
+    api_key="[$API_KEY$]",  # 当前输入的 API Key
+    enable_streaming=True if '[$STREAMING$]' == 'true' else False  # 是否启用流式输出
+)
+
+# 发送消息
+response = chat.ask("Your message here")
+print(response)
+
+# 流式输出
+for chunk in chat.ask("Your message here"):
+    print(chunk["content"], end="", flush=True)</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 打开抽屉按钮 -->
+            <button onclick="toggleCodeDrawer()" class="fixed right-4 top-4 dark:bg-slate-800 bg-white p-3 rounded-lg shadow-lg dark:text-blue-400 text-blue-600 dark:hover:bg-slate-700 hover:bg-slate-100 dark:border-slate-700 border-slate-200 border transition-all duration-200 hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                    <path d="M10 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"></path>
+                    <path d="M14 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
+                    <path d="m10 12 4 0"></path>
+                </svg>
+            </button>
+            
             <!-- 消息列表 -->
             <div class="flex-1 overflow-y-auto p-4" id="messageList">
                 <!-- 对话建议 -->
@@ -385,12 +568,42 @@
             // 恢复聊天记录
             restoreChatHistory();
 
-            // 检测系统主题并设置初始状态
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.documentElement.classList.remove('dark');
-                updateThemeButtons('light');
+            // 加载已保存的配置
+            const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            
+            // 恢复模型类型
+            if (savedConfig.modelType) {
+                const modelTypeSelect = document.getElementById('modelType');
+                modelTypeSelect.value = savedConfig.modelType;
+            }
+            
+            // 恢复 API Key
+            const modelType = document.getElementById('modelType').value;
+            if (savedConfig[`${modelType}_apiKey`]) {
+                document.getElementById('apiKey').value = savedConfig[`${modelType}_apiKey`];
+            }
+            
+            // 恢复模型选择
+            if (savedConfig[`${modelType}_lastModel`]) {
+                document.getElementById('model').value = savedConfig[`${modelType}_lastModel`];
+            }
+            
+            // 恢复流式输出设置
+            if (savedConfig.hasOwnProperty('enableStreaming')) {
+                document.getElementById('enableStreaming').checked = savedConfig.enableStreaming;
+            }
+            
+            // 恢复主题设置
+            if (savedConfig.theme) {
+                toggleTheme(savedConfig.theme);
             } else {
-                updateThemeButtons('dark');
+                // 检测系统主题并设置初始状态
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    document.documentElement.classList.remove('dark');
+                    updateThemeButtons('light');
+                } else {
+                    updateThemeButtons('dark');
+                }
             }
 
             // 监听系统主题变化
@@ -404,26 +617,29 @@
                 }
             });
 
-            // 加载已保存的配置
-            const savedConfig = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
-            if (savedConfig.modelType) {
-                document.getElementById('modelType').value = savedConfig.modelType;
-            }
-            if (savedConfig.apiKey) {
-                document.getElementById('apiKey').value = savedConfig.apiKey;
-            }
-            if (savedConfig.model) {
-                document.getElementById('model').value = savedConfig.model;
-            }
-            if (savedConfig.hasOwnProperty('enableStreaming')) {
-                document.getElementById('enableStreaming').checked = savedConfig.enableStreaming;
-            }
-            if (savedConfig.theme) {
-                toggleTheme(savedConfig.theme);
-            }
-
             // 确保在页面加载时更新 API Key 帮助链接
             updateApiKeyHelpLink();
+            
+            // 初始化代码示例
+            updateCodeExamples();
+            
+            // 初始化前端代码示例切换
+            switchCodeExample('frontend');
+            
+            // 设置配置监听
+            setupConfigListeners();
+            
+            // 监听主题切换,确保代码示例样式同步
+            const observer = new MutationObserver(() => {
+                requestAnimationFrame(() => {
+                    updateCodeExamples();
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
             
             // 初始化后刷新模型列表
             handleModelTypeChange();
@@ -642,6 +858,12 @@
             // 清空当前模型列表
             allModels = [];
             document.getElementById('modelDropdown').classList.add('hidden');
+            
+            // 保存配置并更新代码示例
+            saveConfig();
+            requestAnimationFrame(() => {
+                updateCodeExamples();
+            });
             
             // 自动刷新模型列表
             refreshModels();
@@ -1088,6 +1310,11 @@
             config[`${modelType}_apiKey`] = apiKey;
             localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
             
+            // 更新代码示例
+            requestAnimationFrame(() => {
+                updateCodeExamples();
+            });
+            
             // 刷新模型列表
             if (modelType === 'ollama' || ['openai', 'dashscope', 'deepseek', 'siliconflow'].includes(modelType)) {
                 refreshModels();
@@ -1455,6 +1682,383 @@
                         </div>
                     `;
                     messageList.appendChild(aiMessage);
+                }
+            }
+        }
+
+        // 代码抽屉相关函数
+        function toggleCodeDrawer() {
+            const drawer = document.getElementById('codeDrawer');
+            const chatContainer = document.getElementById('chatContainer');
+            drawer.classList.toggle('translate-x-full');
+            chatContainer.classList.toggle('drawer-open');
+            
+            // 触发窗口 resize 事件以更新布局
+            window.dispatchEvent(new Event('resize'));
+        }
+        
+        // 复制代码函数
+        function copyCode(button) {
+            const pre = button.closest('.relative').querySelector('pre');
+            const code = pre.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerText;
+                button.innerText = '已复制';
+                button.classList.add('dark:bg-green-700', 'bg-green-100', 'dark:text-green-100', 'text-green-700');
+                
+                setTimeout(() => {
+                    button.innerText = originalText;
+                    button.classList.remove('dark:bg-green-700', 'bg-green-100', 'dark:text-green-100', 'text-green-700');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                button.innerText = '复制失败';
+                button.classList.add('dark:bg-red-700', 'bg-red-100', 'dark:text-red-100', 'text-red-700');
+                
+                setTimeout(() => {
+                    button.innerText = '复制代码';
+                    button.classList.remove('dark:bg-red-700', 'bg-red-100', 'dark:text-red-100', 'text-red-700');
+                }, 2000);
+            });
+        }
+        
+        // 更新代码示例中的配置
+        function updateCodeExamples() {
+            const modelType = document.getElementById('modelType').value;
+            const model = document.getElementById('model').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const enableStreaming = document.getElementById('enableStreaming').checked;
+            
+            // 更新所有代码块中的配置
+            document.querySelectorAll('.code-block code').forEach(codeElement => {
+                let code = codeElement.innerText;
+                
+                // JavaScript 代码更新
+                if (codeElement.classList.contains('language-javascript')) {
+                    // Fetch API 代码更新
+                    if (code.includes('fetch')) {
+                        code = code.replace(/model_type:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `model_type: '${modelType}',  // 当前选择的模型类型\n`);
+                        code = code.replace(/model:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `model: '${model}',  // 当前选择的模型\n`);
+                        code = code.replace(/api_key:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `api_key: '${apiKey}',  // 当前输入的 API Key\n`);
+                        code = code.replace(/enable_streaming:\s*[^,\n}]*(\s*\/\/[^\n]*\n|\s*\n|\s*})/, `enable_streaming: ${enableStreaming}  // 是否启用流式输出\n`);
+                    }
+                    // EventSource 代码更新
+                    else if (code.includes('EventSource')) {
+                        code = code.replace(/model_type:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `model_type: '${modelType}',  // 当前选择的模型类型\n`);
+                        code = code.replace(/model:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `model: '${model}',  // 当前选择的模型\n`);
+                        code = code.replace(/api_key:\s*[^,\n]*,(\s*\/\/[^\n]*\n|\s*\n)/, `api_key: '${apiKey}',  // 当前输入的 API Key\n`);
+                        code = code.replace(/enable_streaming:\s*[^,\n}]*(\s*\/\/[^\n]*\n|\s*\n|\s*})/, `enable_streaming: true  // 流式输出始终启用\n`);
+                    }
+                } 
+                // Python 代码更新
+                else if (codeElement.classList.contains('language-python')) {
+                    // 前端 requests 代码更新
+                    if (code.includes('requests.post')) {
+                        code = code.replace(/'model_type':\s*[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `'model_type': '${modelType}',  # 当前选择的模型类型\n`);
+                        code = code.replace(/'model':\s*[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `'model': '${model}',  # 当前选择的模型\n`);
+                        code = code.replace(/'api_key':\s*[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `'api_key': '${apiKey}',  # 当前输入的 API Key\n`);
+                        code = code.replace(/'enable_streaming':\s*[^,\n}]*(\s*#[^\n]*\n|\s*\n|\s*})/, `'enable_streaming': ${enableStreaming ? 'True' : 'False'}  # 是否启用流式输出\n`);
+                    }
+                    // 后端 AIChat 代码更新
+                    else if (code.includes('AIChat')) {
+                        code = code.replace(/provider=[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `provider='${modelType}',  # 当前选择的模型类型\n`);
+                        code = code.replace(/model=[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `model='${model}',  # 当前选择的模型\n`);
+                        code = code.replace(/api_key=[^,\n]*,(\s*#[^\n]*\n|\s*\n)/, `api_key='${apiKey}',  # 当前输入的 API Key\n`);
+                        code = code.replace(/enable_streaming=[^)\n]*(\s*#[^\n]*\n|\s*\n|\s*})/, `enable_streaming=${enableStreaming ? 'True' : 'False'}  # 是否启用流式输出\n`);
+                    }
+                } 
+                // cURL 代码更新
+                else if (codeElement.classList.contains('language-bash')) {
+                    code = code.replace(/"model_type":\s*[^,\n}]*,(\s*\/\/[^\n]*\n|\s*\n)/, `"model_type": "${modelType}",  // 当前选择的模型类型\n`);
+                    code = code.replace(/"model":\s*[^,\n}]*,(\s*\/\/[^\n]*\n|\s*\n)/, `"model": "${model}",  // 当前选择的模型\n`);
+                    code = code.replace(/"api_key":\s*[^,\n}]*,(\s*\/\/[^\n]*\n|\s*\n)/, `"api_key": "${apiKey}",  // 当前输入的 API Key\n`);
+                    code = code.replace(/"enable_streaming":\s*[^,\n}]*(\s*\/\/[^\n]*\n|\s*\n|\s*})/, `"enable_streaming": ${enableStreaming}  // 是否启用流式输出\n`);
+                }
+                
+                // 确保每行后面都有换行符
+                code = code.replace(/([^,\n}])(\/\/|#)([^\n]*)/g, '$1\n$2$3');
+                code = code.replace(/,(\s*)(\/\/|#)([^\n]*)/g, ',\n$2$3');
+                
+                codeElement.innerText = code;
+            });
+        }
+        
+        // 切换代码示例函数
+        function switchCodeExample(type) {
+            const selectedType = document.getElementById(`${type}CodeType`).value;
+            const examples = document.querySelectorAll(`#${type}Examples .code-example`);
+            
+            // 隐藏所有示例
+            examples.forEach(example => {
+                example.classList.add('hidden');
+            });
+            
+            // 显示选中的示例
+            const selectedExample = document.getElementById(`${selectedType}Example`);
+            if (selectedExample) {
+                selectedExample.classList.remove('hidden');
+                
+                // 获取代码元素
+                const codeElement = selectedExample.querySelector('code');
+                if (codeElement) {
+                    const config = {
+                        modelType: document.getElementById('modelType').value,
+                        model: document.getElementById('model').value,
+                        apiKey: document.getElementById('apiKey').value,
+                        enableStreaming: document.getElementById('enableStreaming').checked
+                    };
+
+                    // 根据不同语言选择模板
+                    let template;
+                    if (selectedType === 'eventsource') {
+                        template = CODE_TEMPLATES.eventsource;
+                    } else if (selectedType === 'fetch') {
+                        template = CODE_TEMPLATES.fetch;
+                    } else if (selectedType === 'requests') {
+                        template = CODE_TEMPLATES.requests;
+                    } else if (selectedType === 'curl') {
+                        template = CODE_TEMPLATES.curl;
+                    }
+
+                    if (template) {
+                        codeElement.textContent = updateCodeWithTemplate(template, config);
+                    }
+                }
+            }
+        }
+
+        // 监听配置变化
+        function setupConfigListeners() {
+            // 监听所有配置项的变化
+            const configElements = [
+                {id: 'modelType', events: ['change']},
+                {id: 'model', events: ['change', 'input']},
+                {id: 'apiKey', events: ['change', 'input', 'blur']},
+                {id: 'enableStreaming', events: ['change']}
+            ];
+
+            configElements.forEach(({id, events}) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    events.forEach(eventType => {
+                        element.addEventListener(eventType, () => {
+                            // 使用 requestAnimationFrame 确保在下一帧更新,避免性能问题
+                            requestAnimationFrame(() => {
+                                updateCodeExamples();
+                            });
+                        });
+                    });
+                }
+            });
+
+            // 特别处理模型下拉列表点击选择事件
+            document.getElementById('modelList')?.addEventListener('click', (e) => {
+                if (e.target.tagName === 'DIV' && !e.target.id) {
+                    requestAnimationFrame(() => {
+                        updateCodeExamples();
+                    });
+                }
+            });
+        }
+
+        // 在页面加载时初始化
+        window.addEventListener('load', function() {
+            // 初始化代码示例
+            updateCodeExamples();
+            // 初始化前端代码示例切换
+            switchCodeExample('frontend');
+            // 设置配置监听
+            setupConfigListeners();
+            
+            // 监听主题切换,确保代码示例样式同步
+            const observer = new MutationObserver(() => {
+                requestAnimationFrame(() => {
+                    updateCodeExamples();
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        });
+
+        // 处理流式输出变化
+        function handleStreamingChange() {
+            const enableStreaming = document.getElementById('enableStreaming').checked;
+            
+            // 保存到本地存储
+            const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+            config.enableStreaming = enableStreaming;
+            localStorage.setItem('aiPaletteConfig', JSON.stringify(config));
+            
+            // 更新代码示例
+            requestAnimationFrame(() => {
+                updateCodeExamples();
+            });
+        }
+
+        // 代码范式定义
+        const CODE_TEMPLATES = {
+            fetch: `const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        model_type: '[$MODEL_TYPE$]',  // 当前选择的模型类型
+        model: '[$MODEL$]',  // 当前选择的模型
+        api_key: '[$API_KEY$]',  // 当前输入的 API Key
+        prompt: 'Your message here',
+        enable_streaming: [$STREAMING$]  // 是否启用流式输出
+    })
+});
+
+const data = await response.json();
+console.log(data.response);`,
+
+            eventsource: `const params = new URLSearchParams({
+    model_type: '[$MODEL_TYPE$]',  // 当前选择的模型类型
+    model: '[$MODEL$]',  // 当前选择的模型
+    api_key: '[$API_KEY$]',  // 当前输入的 API Key
+    prompt: 'Your message here',
+    enable_streaming: true  // 流式输出始终启用
+});
+
+const eventSource = new EventSource(\`/api/chat?\${params}\`);
+
+eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data.content);
+};
+
+eventSource.onerror = () => {
+    eventSource.close();
+};`,
+
+            requests: `import requests
+
+response = requests.post(
+    'http://localhost:18000/api/chat',
+    json={
+        'model_type': '[$MODEL_TYPE$]',  # 当前选择的模型类型
+        'model': '[$MODEL$]',  # 当前选择的模型
+        'api_key': '[$API_KEY$]',  # 当前输入的 API Key
+        'prompt': 'Your message here',
+        'enable_streaming': [$STREAMING$]  # 是否启用流式输出
+    }
+)
+
+print(response.json()['response'])`,
+
+            curl: `curl -X POST http://localhost:18000/api/chat \\
+-H "Content-Type: application/json" \\
+-d '{
+    "model_type": "[$MODEL_TYPE$]",  // 当前选择的模型类型
+    "model": "[$MODEL$]",  // 当前选择的模型
+    "api_key": "[$API_KEY$]",  // 当前输入的 API Key
+    "prompt": "Your message here",
+    "enable_streaming": [$STREAMING$]  // 是否启用流式输出
+}'`,
+
+            aichat: `from ai_palette import AIChat
+
+# 初始化聊天实例
+chat = AIChat(
+    provider='[$MODEL_TYPE$]',  # 当前选择的模型类型
+    model='[$MODEL$]',  # 当前选择的模型
+    api_key='[$API_KEY$]',  # 当前输入的 API Key
+    enable_streaming=[$STREAMING$]  # 是否启用流式输出
+)
+
+# 发送消息
+response = chat.ask("Your message here")
+print(response)
+
+# 流式输出
+for chunk in chat.ask("Your message here"):
+    print(chunk["content"], end="", flush=True)`
+        };
+
+        // 更新代码示例的函数
+        function updateCodeWithTemplate(template, config) {
+            const isPythonCode = template.includes('import ') || template.includes('AIChat');
+            return template
+                .replace(/\[\$MODEL_TYPE\$\]/g, config.modelType)
+                .replace(/\[\$MODEL\$\]/g, config.model)
+                .replace(/\[\$API_KEY\$\]/g, config.apiKey)
+                .replace(/\[\$STREAMING\$\]/g, isPythonCode ? (config.enableStreaming ? 'True' : 'False') : config.enableStreaming);
+        }
+
+        // 修改后的 updateCodeExamples 函数
+        function updateCodeExamples() {
+            const config = {
+                modelType: document.getElementById('modelType').value,
+                model: document.getElementById('model').value,
+                apiKey: document.getElementById('apiKey').value,
+                enableStreaming: document.getElementById('enableStreaming').checked
+            };
+
+            // 更新所有代码块
+            document.querySelectorAll('.code-block code').forEach(codeElement => {
+                let template;
+                if (codeElement.classList.contains('language-javascript')) {
+                    template = codeElement.textContent.includes('EventSource') ? 
+                        CODE_TEMPLATES.eventsource : CODE_TEMPLATES.fetch;
+                } else if (codeElement.classList.contains('language-python')) {
+                    template = codeElement.textContent.includes('AIChat') ? 
+                        CODE_TEMPLATES.aichat : CODE_TEMPLATES.requests;
+                } else if (codeElement.classList.contains('language-bash')) {
+                    template = CODE_TEMPLATES.curl;
+                }
+
+                if (template) {
+                    codeElement.textContent = updateCodeWithTemplate(template, config);
+                }
+            });
+        }
+
+        // 修改后的 switchCodeExample 函数
+        function switchCodeExample(type) {
+            const selectedType = document.getElementById(`${type}CodeType`).value;
+            const examples = document.querySelectorAll(`#${type}Examples .code-example`);
+            
+            // 隐藏所有示例
+            examples.forEach(example => {
+                example.classList.add('hidden');
+            });
+            
+            // 显示选中的示例
+            const selectedExample = document.getElementById(`${selectedType}Example`);
+            if (selectedExample) {
+                selectedExample.classList.remove('hidden');
+                
+                // 获取代码元素
+                const codeElement = selectedExample.querySelector('code');
+                if (codeElement) {
+                    const config = {
+                        modelType: document.getElementById('modelType').value,
+                        model: document.getElementById('model').value,
+                        apiKey: document.getElementById('apiKey').value,
+                        enableStreaming: document.getElementById('enableStreaming').checked
+                    };
+
+                    // 根据不同语言选择模板
+                    let template;
+                    if (selectedType === 'eventsource') {
+                        template = CODE_TEMPLATES.eventsource;
+                    } else if (selectedType === 'fetch') {
+                        template = CODE_TEMPLATES.fetch;
+                    } else if (selectedType === 'requests') {
+                        template = CODE_TEMPLATES.requests;
+                    } else if (selectedType === 'curl') {
+                        template = CODE_TEMPLATES.curl;
+                    }
+
+                    if (template) {
+                        codeElement.textContent = updateCodeWithTemplate(template, config);
+                    }
                 }
             }
         }
