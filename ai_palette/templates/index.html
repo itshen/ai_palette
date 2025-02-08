@@ -404,10 +404,10 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h2 id="chainTitle" class="text-xl font-medium dark:text-slate-200 text-slate-900 px-2 py-1 rounded cursor-pointer" ondblclick="makeEditable(this)">未选择推理链</h2>
                                 <div class="flex gap-2 mr-8">
-                                    <button class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
+                                    <button onclick="importChain()" class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
                                         导入
                                     </button>
-                                    <button class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
+                                    <button onclick="exportChain()" class="px-4 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 dark:hover:bg-slate-600 hover:bg-slate-200 transition-colors duration-200">
                                         导出
                                     </button>
                                 </div>
@@ -422,7 +422,6 @@
                                     <div class="grid grid-cols-3 gap-2 mb-2">
                                         <div>
                                             <select id="thinkingModelType" class="input-base">
-                                                <option value="inherit">继承主配置</option>
                                                 <option value="siliconflow">硅基流动</option>
                                                 <option value="deepseek">DeepSeek</option>
                                                 <option value="ollama">Ollama</option>
@@ -434,10 +433,10 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <input type="text" id="thinkingModel" class="input-base" placeholder="模型名称（继承或手动输入）">
+                                            <input type="text" id="thinkingModel" class="input-base" placeholder="模型名称">
                                         </div>
                                         <div>
-                                            <input type="password" id="thinkingApiKey" class="input-base" placeholder="API Key（继承或手动输入）">
+                                            <input type="password" id="thinkingApiKey" class="input-base" placeholder="API Key">
                                         </div>
                                     </div>
                                     <textarea 
@@ -454,7 +453,6 @@
                                     <div class="grid grid-cols-3 gap-2 mb-2">
                                         <div>
                                             <select id="resultModelType" class="input-base">
-                                                <option value="inherit">继承主配置</option>
                                                 <option value="siliconflow">硅基流动</option>
                                                 <option value="deepseek">DeepSeek</option>
                                                 <option value="ollama">Ollama</option>
@@ -466,10 +464,10 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <input type="text" id="resultModel" class="input-base" placeholder="模型名称（继承或手动输入）">
+                                            <input type="text" id="resultModel" class="input-base" placeholder="模型名称">
                                         </div>
                                         <div>
-                                            <input type="password" id="resultApiKey" class="input-base" placeholder="API Key（继承或手动输入）">
+                                            <input type="password" id="resultApiKey" class="input-base" placeholder="API Key">
                                         </div>
                                     </div>
                                     <textarea 
@@ -2409,7 +2407,17 @@ chat = AIChat(
                 id: chainId,
                 title: '新的推理链',
                 thinkingPrompt: '',
-                resultPrompt: ''
+                resultPrompt: '',
+                thinkingConfig: {
+                    modelType: 'siliconflow',
+                    model: '',
+                    apiKey: ''
+                },
+                resultConfig: {
+                    modelType: 'siliconflow',
+                    model: '',
+                    apiKey: ''
+                }
             };
             saveChainData(chainData);
             
@@ -2676,8 +2684,8 @@ chat = AIChat(
                 apiKeyInput.disabled = true;
                 modelInput.value = '';
                 apiKeyInput.value = '';
-                modelInput.placeholder = '继承主配置';
-                apiKeyInput.placeholder = '继承主配置';
+                modelInput.placeholder = '';
+                apiKeyInput.placeholder = '';
                 
                 // 隐藏模型选择下拉框
                 if (window[`${type}ModelDropdown`]) {
@@ -2877,6 +2885,119 @@ chat = AIChat(
             const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
             chains[chainData.id] = chainData;
             localStorage.setItem('aiPaletteChains', JSON.stringify(chains));
+        }
+
+        // 导出推理链
+        function exportChain() {
+            if (!currentChainId) {
+                showError('请先选择一个推理链');
+                return;
+            }
+
+            const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+            const chainData = chains[currentChainId];
+
+            if (!chainData) {
+                showError('找不到推理链数据');
+                return;
+            }
+
+            // 创建导出数据
+            const exportData = {
+                title: chainData.title,
+                thinkingPrompt: chainData.thinkingPrompt,
+                resultPrompt: chainData.resultPrompt,
+                thinkingConfig: chainData.thinkingConfig,
+                resultConfig: chainData.resultConfig,
+                exportTime: new Date().toISOString()
+            };
+
+            // 创建并下载文件
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${chainData.title}_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 导入推理链
+        function importChain() {
+            // 创建文件输入元素
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importData = JSON.parse(e.target.result);
+                        
+                        // 验证导入数据的格式
+                        if (!importData.title || !importData.thinkingPrompt || !importData.resultPrompt || 
+                            !importData.thinkingConfig || !importData.resultConfig) {
+                            throw new Error('导入文件格式不正确');
+                        }
+
+                        // 创建新的推理链
+                        const chainId = 'chain_' + Date.now();
+                        const chainData = {
+                            id: chainId,
+                            title: importData.title,
+                            thinkingPrompt: importData.thinkingPrompt,
+                            resultPrompt: importData.resultPrompt,
+                            thinkingConfig: importData.thinkingConfig,
+                            resultConfig: importData.resultConfig
+                        };
+
+                        // 保存推理链数据
+                        saveChainData(chainData);
+
+                        // 创建新的列表项
+                        const chainList = document.getElementById('chainList');
+                        const newChain = document.createElement('li');
+                        newChain.className = 'flex items-center justify-between px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-slate-300 text-slate-600 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200';
+                        newChain.dataset.chainId = chainId;
+                        
+                        newChain.innerHTML = `
+                            <div class="flex items-center justify-between w-full">
+                                <span class="flex-1 truncate" ondblclick="makeEditable(this)">${importData.title}</span>
+                                <button onclick="deleteChain(this)" class="p-1.5 dark:hover:bg-slate-600 hover:bg-slate-200 dark:text-slate-400 text-slate-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                        
+                        // 添加点击事件
+                        newChain.addEventListener('click', (e) => {
+                            if (!e.target.closest('button')) {
+                                selectChain(chainId);
+                            }
+                        });
+                        
+                        chainList.appendChild(newChain);
+                        
+                        // 选中新导入的推理链
+                        selectChain(chainId);
+
+                        showSuccess('推理链导入成功');
+                    } catch (error) {
+                        showError('导入失败: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            input.click();
         }
     </script>
 </body>
