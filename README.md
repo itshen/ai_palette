@@ -317,6 +317,82 @@ chat.clear_context()  # 只清除普通对话
 chat.clear_context(include_system_prompt=True)  # 清除所有上下文
 ```
 
+### 推理链功能
+
+推理链允许你使用两个不同的模型进行两阶段推理：一个用于思考，一个用于生成最终结果。这对于需要深度思考和推理的复杂任务特别有用。
+
+```python
+import requests
+import json
+
+# 推理链配置示例
+chain_config = {
+    "query": "为什么天会下雨？",  # 用户问题
+    "enable_streaming": True,     # 是否启用流式输出
+    "use_reasoning_field": True,  # True: 使用 reasoning_content 字段返回思考过程
+                                 # False: 使用 <think></think> 标签包裹思考过程
+    "thinkingConfig": {          # 思考阶段的模型配置
+        "modelType": "siliconflow",
+        "model": "Qwen/Qwen2.5-7B-Instruct",
+        "apiKey": "your-api-key"
+    },
+    "resultConfig": {            # 结果阶段的模型配置
+        "modelType": "siliconflow",
+        "model": "Qwen/Qwen2.5-7B-Instruct",
+        "apiKey": "your-api-key"
+    },
+    "thinkingPrompt": "这个是思考的 prompt， 会包括 [$query$]",
+    "resultPrompt": "这个是结果，不但包括[$thought$]，还会包括[$query$]",
+    "context": [                 # 可选的上下文历史
+        {"role": "user", "content": "之前的问题"},
+        {"role": "assistant", "content": "之前的回答"}
+    ]
+}
+
+# 发送请求
+response = requests.post(
+    "http://localhost:18000/api/chain_chat",
+    json=chain_config
+)
+
+# 处理非流式响应
+if not chain_config["enable_streaming"]:
+    result = response.json()
+    if result["success"]:
+        if chain_config["use_reasoning_field"]:
+            print("思考过程:", result["reasoning_content"])
+            print("最终答案:", result["response"])
+        else:
+            print("完整回答:", result["response"])  # 包含 <think></think> 标签
+    else:
+        print("错误:", result["error"])
+
+# 处理流式响应
+else:
+    for line in response.iter_lines():
+        if line:
+            line = line.decode('utf-8')
+            if line.startswith('data: '):
+                data = json.loads(line[6:])
+                if data.get("type") == "thinking":
+                    print("思考中:", data["content"])
+                elif data.get("type") == "content":
+                    if chain_config["use_reasoning_field"]:
+                        print("最终答案:", data["content"])
+                        if "reasoning_content" in data:
+                            print("思考过程:", data["reasoning_content"])
+                    else:
+                        print("完整回答:", data["content"])  # 包含 <think></think> 标签
+```
+
+推理链的主要特点：
+
+- 🔄 **两阶段推理**: 分别使用思考模型和结果模型
+- 🎯 **灵活配置**: 可以为每个阶段配置不同的模型和参数
+- 💭 **思考过程**: 可选择使用单独字段或标签形式展示思考过程
+- 🌊 **流式输出**: 支持实时查看思考和结果的生成过程
+- 📜 **上下文支持**: 保持对话历史，自动处理思考内容
+
 ## 📄 许可证
 
 MIT 

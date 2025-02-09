@@ -163,6 +163,114 @@ def chat():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/chain_chat', methods=['GET', 'POST'])
+def chain_chat():
+    if request.method == 'GET':
+        data = request.args
+    else:
+        data = request.json
+        
+    query = data.get('query')  # 用户请求
+    enable_streaming = data.get('enable_streaming', False)
+    use_reasoning_field = data.get('use_reasoning_field', True)  # 是否使用 reasoning_content 字段
+    context = data.get('context', [])  # 获取上下文
+    
+    # 获取推理链配置
+    thinking_config = data.get('thinkingConfig', {})
+    result_config = data.get('resultConfig', {})
+    thinking_prompt = data.get('thinkingPrompt', '')
+    result_prompt = data.get('resultPrompt', '')
+    
+    try:
+        # 创建思考阶段的聊天实例
+        thinking_chat = AIChat(
+            provider=thinking_config.get('modelType'),
+            api_key=thinking_config.get('apiKey'),
+            model=thinking_config.get('model'),
+            enable_streaming=enable_streaming,
+            timeout=120
+        )
+        
+        # 创建结果阶段的聊天实例
+        result_chat = AIChat(
+            provider=result_config.get('modelType'),
+            api_key=result_config.get('apiKey'),
+            model=result_config.get('model'),
+            enable_streaming=enable_streaming,
+            timeout=120
+        )
+        
+        # 处理上下文
+        for msg in context:
+            if msg['role'] == 'assistant':
+                content = msg['content']
+                if '<think>' in content:
+                    start = content.find('<think>')
+                    end = content.find('</think>')
+                    if end > start:
+                        content = content[end + 8:].strip()
+                thinking_chat.add_context(content=content, role=msg['role'])
+                result_chat.add_context(content=content, role=msg['role'])
+            else:
+                thinking_chat.add_context(content=msg['content'], role=msg['role'])
+                result_chat.add_context(content=msg['content'], role=msg['role'])
+        
+        if enable_streaming:
+            def generate():
+                # 思考阶段
+                thought_content = []
+                thinking_prompt_filled = thinking_prompt.replace('[$query$]', query)
+                
+                for chunk in thinking_chat.ask(thinking_prompt_filled):
+                    if isinstance(chunk, dict):
+                        yield f"data: {json.dumps(chunk)}\n\n"
+                    else:
+                        thought_content.append(chunk)
+                        yield f"data: {json.dumps({'type': 'thinking', 'content': chunk})}\n\n"
+                
+                thought = ''.join(thought_content)
+                
+                # 结果阶段
+                result_prompt_filled = result_prompt.replace('[$query$]', query).replace('[$thought$]', thought)
+                for chunk in result_chat.ask(result_prompt_filled):
+                    if isinstance(chunk, dict):
+                        yield f"data: {json.dumps(chunk)}\n\n"
+                    else:
+                        if use_reasoning_field:
+                            yield f"data: {json.dumps({'type': 'content', 'content': chunk, 'reasoning_content': thought})}\n\n"
+                        else:
+                            yield f"data: {json.dumps({'type': 'content', 'content': f'<think>{thought}</think>{chunk}'})}\n\n"
+                        
+            return Response(generate(), mimetype='text/event-stream')
+        else:
+            # 思考阶段
+            thinking_prompt_filled = thinking_prompt.replace('[$query$]', query)
+            thought = thinking_chat.ask(thinking_prompt_filled)
+            if not thought:
+                return jsonify({'success': False, 'error': '思考阶段失败'}), 500
+                
+            # 结果阶段
+            result_prompt_filled = result_prompt.replace('[$query$]', query).replace('[$thought$]', thought)
+            result = result_chat.ask(result_prompt_filled)
+            if not result:
+                return jsonify({'success': False, 'error': '结果阶段失败'}), 500
+            
+            # 构建响应
+            response = {
+                'success': True,
+                'response': result
+            }
+            
+            if use_reasoning_field:
+                response['reasoning_content'] = thought
+            else:
+                response['response'] = f'<think>{thought}</think>{result}'
+            
+            return jsonify(response)
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 def run_server():
     app.run(host='0.0.0.0', port=18000)
 
