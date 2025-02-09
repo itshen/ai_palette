@@ -221,12 +221,19 @@ def chain_chat():
                 thought_content = []
                 thinking_prompt_filled = thinking_prompt.replace('[$query$]', query)
                 
+                if not use_reasoning_field:
+                    yield f"data: {json.dumps({'type': 'content', 'content': '<think>'})}"
+                
                 for chunk in thinking_chat.ask(thinking_prompt_filled):
                     if isinstance(chunk, dict):
-                        yield f"data: {json.dumps(chunk)}\n\n"
-                    else:
-                        thought_content.append(chunk)
-                        yield f"data: {json.dumps({'type': 'thinking', 'content': chunk})}\n\n"
+                        content = chunk.get('content')
+                        thought_content.append(content)
+                        if use_reasoning_field:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'content': content})}"
+                        else:
+                            yield f"data: {json.dumps({'type': 'content', 'content': content})}"
+                if not use_reasoning_field:
+                    yield f"data: {json.dumps({'type': 'content', 'content': '</think>'})}"
                 
                 thought = ''.join(thought_content)
                 
@@ -234,12 +241,7 @@ def chain_chat():
                 result_prompt_filled = result_prompt.replace('[$query$]', query).replace('[$thought$]', thought)
                 for chunk in result_chat.ask(result_prompt_filled):
                     if isinstance(chunk, dict):
-                        yield f"data: {json.dumps(chunk)}\n\n"
-                    else:
-                        if use_reasoning_field:
-                            yield f"data: {json.dumps({'type': 'content', 'content': chunk, 'reasoning_content': thought})}\n\n"
-                        else:
-                            yield f"data: {json.dumps({'type': 'content', 'content': f'<think>{thought}</think>{chunk}'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'content', 'content': chunk.get('content')})}\n\n"
                         
             return Response(generate(), mimetype='text/event-stream')
         else:

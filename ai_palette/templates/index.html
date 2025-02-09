@@ -869,7 +869,7 @@ for chunk in chat.ask("Your message here"):
                 modelList.innerHTML = '';
                 
                 // 添加所有可用的推理链到下拉列表
-                Object.values(chains).forEach(chain => {
+                Object.entries(chains).forEach(([chainId, chain]) => {
                     allModels.push(chain.title);
                     const option = document.createElement('div');
                     option.className = 'px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer';
@@ -1357,20 +1357,78 @@ for chunk in chat.ask("Your message here"):
             // 发送请求
             try {
                 if (enableStreaming) {
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
+                    // 判断是否使用双链推理 - 通过modelType判断
+                    console.log('当前选择的模型类型:', modelType);  // 添加调试日志
+                    const isChainThinking = modelType === 'dual_chain';
+                    const endpoint = isChainThinking ? '/api/chain_chat' : '/api/chat';
+                    console.log('使用的接口endpoint:', endpoint);  // 添加调试日志
+                    
+                    let requestBody = {
+                        enable_streaming: true,
+                        context: context
+                    };
+                    
+                    if (isChainThinking) {
+                        // 从本地存储获取当前选中的推理链配置
+                        const chains = JSON.parse(localStorage.getItem('aiPaletteChains') || '{}');
+                        const config = JSON.parse(localStorage.getItem('aiPaletteConfig') || '{}');
+                        const selectedChainTitle = config.dual_chain_lastModel;
+                        
+                        console.log('当前配置:', config);
+                        console.log('所有推理链:', chains);
+                        console.log('当前选中的推理链标题:', selectedChainTitle);
+                        
+                        // 通过标题查找对应的推理链
+                        const chainId = Object.keys(chains).find(id => chains[id].title === selectedChainTitle);
+                        console.log('找到的推理链ID:', chainId);
+                        
+                        if (!chainId || !chains[chainId]) {
+                            console.log('推理链检查失败:', {
+                                hasChainId: !!chainId,
+                                chainExists: chainId ? !!chains[chainId] : false,
+                                selectedTitle: selectedChainTitle,
+                                availableTitles: Object.values(chains).map(c => c.title)
+                            });
+                            throw new Error('请先选择或创建一个推理链');
+                        }
+                        
+                        const chainData = chains[chainId];
+                        console.log('获取到的推理链数据:', chainData);
+                        
+                        // 双链推理的参数
+                        Object.assign(requestBody, {
+                            query: prompt,
+                            thinkingConfig: chainData.thinkingConfig || {
+                                modelType: modelType,
+                                apiKey: apiKey,
+                                model: model
+                            },
+                            resultConfig: chainData.resultConfig || {
+                                modelType: modelType,
+                                apiKey: apiKey,
+                                model: model
+                            },
+                            thinkingPrompt: chainData.thinkingPrompt || '[$query$]',
+                            resultPrompt: chainData.resultPrompt || '[$thought$]\n[$query$]',
+                            use_reasoning_field: true
+                        });
+                    } else {
+                        // 普通对话的参数
+                        Object.assign(requestBody, {
                             model_type: modelType,
                             api_key: apiKey,
                             model: model,
                             prompt: prompt,
-                            enable_streaming: true,
-                            include_reasoning: true,
-                            context: context
-                        })
+                            include_reasoning: true
+                        });
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
                     });
 
                     const reader = response.body.getReader();
@@ -2445,9 +2503,11 @@ chat = AIChat(
 我会基于用户的问题进行深入分析和思考，我会输出内心的独白，思考中，我会基于下面的方式:
 
 ### 我的思考方式
-作为一个专业分析助手，我将模拟人类的思维过程:
 
+作为一个专业分析助手，我将模拟人类的思维过程。
+但我一定不会使用 markdown 的格式，而是使用纯文本。
 1. 我的思维模式:
+- 我会合理推测用户提问的真实意图
 - 我会从多个角度思考问题
 - 我会同时考虑正反两面
 - 我善于进行因果推理
@@ -2572,7 +2632,8 @@ chat = AIChat(
 这是我之前的分析过程:
 [$thought$]
 
-# 我的回答：
+# 我的回答
+
 `,
                     thinkingConfig: {
                         modelType: 'inherit',
@@ -2638,9 +2699,11 @@ chat = AIChat(
 我会基于用户的问题进行深入分析和思考，我会输出内心的独白，思考中，我会基于下面的方式:
 
 ### 我的思考方式
-作为一个专业分析助手，我将模拟人类的思维过程:
+作为一个专业分析助手，我将模拟人类的思维过程。
+但我一定不会使用 markdown 的格式，而是使用纯文本。
 
 1. 我的思维模式:
+- 我会合理推测用户提问的真实意图
 - 我会从多个角度思考问题
 - 我会同时考虑正反两面
 - 我善于进行因果推理
@@ -2765,7 +2828,8 @@ chat = AIChat(
 这是我之前的分析过程:
 [$thought$]
 
-# 我的回答：
+# 我的回答
+
 `,
                 thinkingConfig: {
                     modelType: 'siliconflow',
