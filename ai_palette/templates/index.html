@@ -26,6 +26,43 @@
     </script>
     <style type="text/tailwindcss">
         @layer components {
+            .whitespace-pre-wrap {
+                @apply text-slate-400 dark:text-slate-200;
+            }
+            
+            /* 分隔线保持块级 */
+            .whitespace-pre-wrap hr {
+                @apply block my-4 border-t border-slate-200 dark:border-slate-700;
+            }
+
+            .whitespace-pre-wrap br{
+                display: inline-block;
+                margin-bottom: 0.5rem;
+                margin-top: 0.5rem;
+            }
+            
+            .whitespace-pre-wrap p {
+                display: inline-block;
+                margin-bottom: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .whitespace-pre-wrap li {
+                display: inline-block;
+                margin-left: 1rem;
+                margin-bottom: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .whitespace-pre-wrap h1,
+            .whitespace-pre-wrap h2,
+            .whitespace-pre-wrap h3,
+            .whitespace-pre-wrap h4,
+            .whitespace-pre-wrap h5,
+            .whitespace-pre-wrap h6 {
+                display: inline-block;
+            }
+
             .gradient-bg {
                 @apply dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 bg-gradient-to-br from-slate-50 to-slate-100;
             }
@@ -163,6 +200,7 @@
             }
         }
     </style>
+
 </head>
 <body class="dark:bg-slate-900 dark:text-slate-200 bg-slate-50 text-slate-900">
     <!-- 欢迎模态框 -->
@@ -1234,6 +1272,9 @@ for chunk in chat.ask("Your message here"):
             
             // 先转义 HTML
             text = escapeHtml(text);
+
+            // 连续两个的换行改成一个
+            text = text.replace(/\n\n/g, '\n');
             
             // 处理加粗 **text**
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -1263,7 +1304,7 @@ for chunk in chat.ask("Your message here"):
             // 处理换行，保持原有的换行
             text = text.split('\n').map(line => {
                 if (!line.startsWith('<') && line.trim() !== '') {
-                    return `<p class="mb-1">${line}</p>`;
+                    return `<p class="mb-2 inline-block">${line}</p>`;  // 增加更多高度
                 }
                 return line;
             }).join('\n');
@@ -2501,11 +2542,13 @@ chat = AIChat(
                     title: formattedTime,
                     thinkingPrompt: `我是一位专业的分析助手。
 我会基于用户的问题进行深入分析和思考，我会输出内心的独白，思考中，我会基于下面的方式:
+我会尝试一步一步思考与推理。
 
 ### 我的思考方式
 
-作为一个专业分析助手，我将模拟人类的思维过程。
+作为一个专业分析助手，我将模拟人类的推理思维过程。
 但我一定不会使用 markdown 的格式，而是使用纯文本。
+
 1. 我的思维模式:
 - 我会合理推测用户提问的真实意图
 - 我会从多个角度思考问题
@@ -2697,6 +2740,7 @@ chat = AIChat(
                 title: formattedTime,
                 thinkingPrompt: `我是一位专业的分析助手。
 我会基于用户的问题进行深入分析和思考，我会输出内心的独白，思考中，我会基于下面的方式:
+我会尝试一步一步思考与推理。
 
 ### 我的思考方式
 作为一个专业分析助手，我将模拟人类的思维过程。

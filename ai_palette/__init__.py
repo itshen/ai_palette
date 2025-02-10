@@ -81,7 +81,7 @@ class APIProvider(Enum):
         urls = {
             APIProvider.OPENAI: "https://api.openai.com/v1/chat/completions",
             APIProvider.ERNIE: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions",
-            APIProvider.DASHSCOPE: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            APIProvider.DASHSCOPE: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
             APIProvider.OLLAMA: "http://localhost:11434/api/chat",
             APIProvider.ZHIPU: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
             APIProvider.MINIMAX: "https://api.minimax.chat/v1/chat/completions",
@@ -229,16 +229,7 @@ class AIChat:
 
     def _prepare_request_data(self, messages: List[Dict[str, str]], stream: bool = False) -> Dict:
         """准备请求数据"""
-        if self.provider == APIProvider.DASHSCOPE:
-            data = {
-                "model": self.model,
-                "input": {"messages": messages},
-                "parameters": {"result_format": "message"}
-            }
-            if self.max_tokens:
-                data["parameters"]["max_tokens"] = self.max_tokens
-            return data
-        elif self.provider == APIProvider.MINIMAX:
+        if self.provider == APIProvider.MINIMAX:
             data = {
                 "model": self.model,
                 "messages": messages,
@@ -275,7 +266,7 @@ class AIChat:
                 data["temperature"] = self.temperature
             return data
         else:
-            # OpenAI 格式作为默认格式
+            # OpenAI 格式作为默认格式（包括 DASHSCOPE）
             data = {
                 "model": self.model,
                 "messages": messages,
@@ -336,16 +327,6 @@ class AIChat:
                 error_msg = f"响应格式错误: 预期为字典类型,实际为 {type(response_json)}"
                 logger.error(error_msg)
                 raise ValueError(error_msg)
-            
-            # 根据不同的API提供商处理响应
-            if self.provider == APIProvider.DASHSCOPE:
-                if "output" not in response_json:
-                    raise ValueError("DASHSCOPE响应缺少 'output' 字段")
-                if "choices" not in response_json["output"]:
-                    raise ValueError("DASHSCOPE响应缺少 'output.choices' 字段")
-                if not response_json["output"]["choices"]:
-                    raise ValueError("DASHSCOPE 'output.choices' 数组为空")
-                return response_json["output"]["choices"][0]["message"]["content"]
             
             elif self.provider == APIProvider.OLLAMA:
                 if "message" not in response_json:
@@ -422,11 +403,23 @@ class AIChat:
                             break
                         try:
                             json_data = json.loads(line[6:])
-                            if "output" in json_data and "choices" in json_data["output"] and json_data["output"]["choices"]:
-                                message = json_data["output"]["choices"][0].get("message", {})
-                                content = message.get("content", "")
+                            if "choices" in json_data and json_data["choices"]:
+                                choice = json_data["choices"][0]
+                                delta = choice.get("delta", {})
+                                
+                                # 处理第一条消息（role）
+                                if "role" in delta:
+                                    continue
+                                    
+                                # 处理内容
+                                content = delta.get("content", "")
                                 if content:
                                     yield {"type": "content", "content": content}
+                                    
+                                # 处理结束标志
+                                if choice.get("finish_reason") == "stop":
+                                    break
+                                    
                         except (json.JSONDecodeError, KeyError, TypeError) as e:
                             logger.error(f"处理DASHSCOPE响应时出错: {str(e)}\n响应内容: {line}")
                             continue
